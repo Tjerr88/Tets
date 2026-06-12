@@ -1,0 +1,2244 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#172019" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Chop Wood" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/png" sizes="64x64" href="assets/favicon-64.png" />
+  <link rel="apple-touch-icon" href="assets/icon-192.png" />
+  <title>Chop Wood &amp; Carry Water - 60 Day Practice</title>
+  <style>
+    :root{
+      --bg:#172019;
+      --surface:#f7efe0;
+      --surface2:#efe2ca;
+      --text:#251b13;
+      --muted:#725f4a;
+      --line:#d4bd94;
+      --acc:#b84a2f;
+      --gold:#b88a37;
+      --ink:#18231d;
+      --good:#436f48;
+      --mid:#9a7831;
+      --rec:#506f83;
+      --danger:#8d3e34;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0; padding:18px;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background:
+        radial-gradient(circle at 50% -20%, rgba(231,183,91,0.28), transparent 34%),
+        linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px),
+        linear-gradient(180deg, rgba(22,52,35,0.92) 0%, rgba(13,31,23,0.96) 55%, #101812 100%);
+      background-size: auto, 42px 42px, auto;
+      color:var(--text);
+      min-height:100vh;
+    }
+    .wrap{ max-width:1060px; margin:0 auto; display:grid; gap:14px; }
+    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .card{
+      background: var(--surface);
+      border:1px solid var(--line);
+      border-radius:8px;
+      padding:16px;
+      box-shadow: 0 18px 48px rgba(5,10,6,0.28);
+    }
+    .masthead{
+      position:relative;
+      overflow:hidden;
+      border-color: rgba(184,138,55,0.62);
+      background:
+        linear-gradient(180deg, rgba(123,33,24,0.10), transparent 38%),
+        var(--surface);
+    }
+    .masthead::before{
+      content:"";
+      position:absolute; left:18px; right:18px; top:0;
+      height:8px;
+      background: linear-gradient(90deg, transparent, var(--acc), var(--gold), var(--acc), transparent);
+      opacity:.95;
+    }
+    .masthead::after{
+      content:"";
+      position:absolute; right:16px; top:16px;
+      width:74px; height:42px;
+      border-top:7px solid rgba(37,27,19,0.18);
+      border-left:28px solid transparent;
+      border-right:28px solid transparent;
+      opacity:.65;
+    }
+    .brand{
+      display:flex;
+      gap:16px;
+      align-items:center;
+      padding-right:72px;
+    }
+    .brand-logo{
+      width:112px;
+      height:112px;
+      object-fit:contain;
+      flex:0 0 auto;
+      mix-blend-mode:multiply;
+    }
+    .brand-copy{ min-width:0; }
+    @media (max-width: 520px){
+      .brand{
+        gap:12px;
+        padding-right:0;
+      }
+      .brand-logo{
+        width:86px;
+        height:86px;
+      }
+      .masthead::after{ display:none; }
+    }
+    h1{ font-size:20px; margin:6px 0 6px; letter-spacing:.02em; }
+    h2{ font-size:15px; margin:0 0 8px; color:var(--text); }
+    p{ margin:0; color:var(--muted); line-height:1.35; font-size:13px; }
+    .btn{
+      appearance:none;
+      border:1px solid rgba(32,40,34,0.12);
+      background: rgba(255,250,239,0.58);
+      color:var(--text);
+      border-radius:8px;
+      padding:10px 12px;
+      font-weight:780;
+      cursor:pointer;
+      transition: transform .04s ease, background .12s ease, border-color .12s ease, opacity .12s ease;
+      user-select:none;
+    }
+    .btn:active{ transform: translateY(1px); }
+    .btn.primary{
+      border-color: rgba(184,74,47,0.44);
+      background: rgba(184,74,47,0.10);
+      color:#5c2419;
+    }
+    .btn.danger{
+      border-color: rgba(154,82,72,0.24);
+      background: rgba(154,82,72,0.045);
+      color: var(--danger);
+    }
+    .btn.good{
+      border-color: rgba(75,139,96,0.38);
+      background: rgba(75,139,96,0.10);
+    }
+    .btn.mid{
+      border-color: rgba(154,120,49,0.35);
+      background: rgba(154,120,49,0.10);
+    }
+    .btn.rec{
+      border-color: rgba(93,120,148,0.35);
+      background: rgba(93,120,148,0.08);
+    }
+    .btn:disabled{ opacity:.45; cursor:not-allowed; }
+
+    .pill{
+      display:inline-flex; gap:6px; align-items:center;
+      padding:6px 10px; border-radius:999px;
+      border:1px solid rgba(32,40,34,0.12);
+      background: rgba(255,250,239,0.56);
+      color:var(--muted);
+      font-size:12px;
+    }
+    .pill strong{ color:var(--text); }
+    .grid{ display:grid; grid-template-columns: 1fr; gap:14px; }
+    @media (min-width: 880px){ .grid{ grid-template-columns: minmax(0,1fr) 320px; align-items:start; } }
+    #rightCard{ display:none; position:sticky; top:18px; }
+    #rightCard.active{ display:block; }
+    .sectionTitle{ font-size:14px; margin:0 0 10px; color:var(--text); text-transform:uppercase; letter-spacing:.08em; }
+    .sectionTitle::before{
+      content:"";
+      display:inline-block;
+      width:18px;
+      height:1px;
+      margin-right:8px;
+      vertical-align:middle;
+      background: var(--gold);
+    }
+    .optionalCard{ opacity:.88; }
+    .optionalCard .ex-title, .optionalCard .ex-meta{ font-style:italic; }
+    .carryCard{ margin-top:0; }
+
+    .hr{ height:1px; background:var(--line); margin:16px 0; }
+    .small{ font-size:12px; color:var(--muted); }
+    .time{
+      font-variant-numeric: tabular-nums;
+      font-size:46px; font-weight:850; letter-spacing:0; line-height:1;
+      color: var(--ink);
+      text-shadow: 0 1px 0 rgba(255,255,255,0.55);
+    }
+    .label{ color:var(--muted); font-size:12px; }
+    .exercise{
+      border:1px solid var(--line);
+      background:
+        linear-gradient(90deg, rgba(184,74,47,0.055), transparent 32%),
+        var(--surface2);
+      border-radius:8px;
+      padding:14px 14px;
+      display:flex; gap:14px; justify-content:space-between; align-items:flex-start;
+    }
+    .ex-left{ display:grid; gap:6px; }
+    .ex-title{ font-weight:820; font-size:15px; line-height:1.2; }
+    .ex-meta{ color:var(--muted); font-size:12px; line-height:1.35; }
+    .warmup{
+      border:1px solid var(--line);
+      background:
+        linear-gradient(90deg, rgba(184,138,55,0.10), transparent 40%),
+        var(--surface2);
+      border-radius:8px;
+      padding:12px 14px;
+      margin:0 0 16px;
+    }
+    .warmup summary{
+      cursor:pointer;
+      font-weight:850;
+      user-select:none;
+    }
+    .warmup-list{
+      display:grid;
+      gap:6px;
+      margin:10px 0 0;
+      padding:0;
+      list-style:none;
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    /* Gate */
+    .gate-grid{ display:grid; gap:16px; }
+    .gate-row{ display:grid; gap:8px; }
+    .score-row{ display:flex; gap:8px; flex-wrap:wrap; }
+    .score-btn{
+      width:42px; height:36px;
+      display:inline-flex; justify-content:center; align-items:center;
+      border-radius:999px;
+      border:1px solid rgba(32,40,34,0.14);
+      background:rgba(255,250,239,0.62);
+      color:var(--text);
+      font-weight:760;
+      cursor:pointer;
+      user-select:none;
+      transition: transform .04s ease, background .12s ease, border-color .12s ease;
+    }
+    .score-btn:active{ transform: translateY(1px); }
+    .score-btn.active{
+      border-color: rgba(184,74,47,0.48);
+      background: rgba(184,74,47,0.12);
+      color: #64281d;
+    }
+    .total{
+      display:flex; gap:10px; align-items:center; justify-content:space-between;
+      border:1px solid var(--line);
+      background: var(--surface2);
+      border-radius:8px;
+      padding:12px 14px;
+    }
+    .total .n{ font-size:28px; font-weight:900; font-variant-numeric: tabular-nums; }
+    .badge{
+      padding:6px 10px; border-radius:999px; font-size:12px; font-weight:900;
+      border:1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.04);
+      color: var(--muted);
+    }
+    .badge.good{ color: #315b3c; border-color: rgba(67,111,72,.34); background: rgba(67,111,72,.09); }
+    .badge.mid{ color: #7a6027; border-color: rgba(184,138,55,.36); background: rgba(184,138,55,.10); }
+    .badge.rec{ color: #405f7a; border-color: rgba(80,111,131,.34); background: rgba(80,111,131,.09); }
+
+    /* Breathing */
+    .breathBox{ display:grid; gap:12px; align-items:center; justify-items:center; padding:8px 0; }
+    .ring{
+      width:220px; height:220px; border-radius:999px;
+      border: 2px solid rgba(184,138,55,0.26);
+      background: rgba(255,250,239,0.42);
+      display:grid; place-items:center;
+      position: relative;
+      overflow:hidden;
+    }
+    .ring::after{
+      content:"";
+      position:absolute; inset:12px;
+      border-radius:999px;
+      border: 1px solid rgba(32,40,34,0.08);
+    }
+    .ringInner{
+      width:120px; height:120px; border-radius:999px;
+      background: rgba(255,250,239,0.72);
+      border: 1px solid rgba(184,138,55,0.22);
+      display:grid; place-items:center;
+      transition: transform 0.25s linear;
+      z-index:1;
+    }
+    .phase{ font-weight:950; letter-spacing:.6px; text-align:center; }
+    .phaseSub{ font-size:12px; color:var(--muted); margin-top:2px; text-align:center; }
+    .progress{ width:100%; height:10px; border-radius:999px; border:1px solid rgba(32,40,34,0.12); background: rgba(255,255,255,0.55); overflow:hidden; }
+    .progress > div{ height:100%; width:0%; background: linear-gradient(90deg, rgba(184,74,47,0.42), rgba(184,138,55,0.30)); }
+
+    /* Confetti canvas */
+    #confettiCanvas{ position:fixed; inset:0; pointer-events:none; z-index:9999; display:none; }
+  
+    .scale-legend{
+      font-size:12px;
+      color: var(--muted);
+      opacity:.85;
+      margin-top:6px;
+      line-height:1.3;
+    }
+    
+    .score-label{ margin-top:6px; min-height:18px; font-size:12px; color:var(--muted); font-weight:600; }
+.score-btn.active{
+      transform: scale(1.04);
+      font-weight:700;
+    }
+
+    /* App modal (confirm + checkpoint) */
+    #appModal{
+      position:fixed; inset:0;
+      background: rgba(10,18,12,0.58);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:10000;
+      padding:16px;
+    }
+    #appModal.show{ display:flex; }
+    .modalCard{
+      width:min(560px, 100%);
+      border:1px solid var(--line);
+      background: var(--surface);
+      border-radius:8px;
+      padding:14px;
+      box-shadow: none;
+    }
+    .modalTitle{ font-size:15px; font-weight:900; margin:0 0 6px; }
+    .modalText{ font-size:13px; color:var(--muted); margin:0; line-height:1.35; }
+    .modalRow{ display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
+    .modalList{ display:grid; gap:8px; margin-top:10px; }
+    .modalItem{
+      border:1px solid var(--line);
+      background: rgba(0,0,0,0.18);
+      border-radius:8px;
+      padding:10px 12px;
+      color:var(--text);
+      font-size:13px;
+    }
+    .modalItem label{ display:flex; gap:10px; align-items:flex-start; cursor:pointer; }
+    .modalItem input{ transform: translateY(2px); }
+
+</style>
+</head>
+<body>
+<canvas id="confettiCanvas"></canvas>
+
+<div id="appModal" aria-hidden="true">
+  <div class="modalCard" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalText">
+    <div class="modalTitle" id="modalTitle">Chop Wood &amp; Carry Water</div>
+    <p class="modalText" id="modalText">-</p>
+    <div id="modalBody"></div>
+    <div class="modalRow" id="modalActions"></div>
+  </div>
+</div>
+
+
+<div class="wrap">
+  <div class="card masthead">
+    <div class="brand">
+      <img class="brand-logo" src="assets/brand-logo.png" alt="Chop Wood and Carry Water logo" />
+      <div class="brand-copy">
+        <h1>Chop Wood &amp; Carry Water</h1>
+        <p class="small">Enter the gate. Do the work. Release the outcome.</p>
+      </div>
+    </div>
+    <div class="row" style="margin-top:10px;">
+      <button id="btnMain" class="btn primary">Open session</button>
+      <button id="btnReset" class="btn" title="Clears selection memory and today's active status.">Reset</button>
+      <span id="trainPill" class="pill">Practice: <strong>0 / 60</strong></span>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div id="leftCard" class="card"></div>
+    <div id="rightCard" class="card"><div id="rightInner"></div></div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const LS_MEM_KEY = "dtt_memory_v3";
+  const LS_ACTIVE_KEY = "dtt_active_v2";
+  const LS_DAY_KEY = "dtt_day_v2";
+  const LS_TRAIN_COUNT_KEY = "dtt_train_count_v1";
+  const LS_FULL_STREAK_KEY = "dtt_full_streak_v1";
+  const LS_PRACTICE_MODE_KEY = "cw_practice_mode_v1";
+  const LS_TRAINING_STYLE_KEY = "cw_training_style_v1";
+  const LS_KB_ONLY_KEY = "cw_kb_only_v1";
+  const LS_HYPERTROPHY_QUEUE_KEY = "cw_hypertrophy_queue_v1";
+  const LS_LESSON_DAY_KEY = "cw_lesson_day_v1";
+  const LS_LESSON_TODAY_KEY = "cw_lesson_today_v1";
+
+  const DUR = { carrySec: 5*60, mobilitySec: 25*60 };
+
+  const EVERYTHING_ELSE_NORMAL = [
+    "Leg Raise",
+    "Ab Wheel Rollout",
+    "Bicep Curl",
+    "Tricep Extension"
+  ];
+
+  const LIB = {
+    squat: { label:"Squat", subcats:{
+      symmetric:{ label:"Symmetric", exercises:["Goblet Squat","Double Front Squat","Hack Squat"] },
+      asymmetric:{ label:"Asymmetric", exercises:["Reverse Lunge","Side Lunge / Cossack","Bulgarian Split Squat"] },
+      singleleg:{ label:"Single Leg", exercises:["Step-up","Skater Squat","Box Pistol"] },
+    }},
+    hinge: { label:"Hinge", subcats:{
+      deadlift:{ label:"Deadlift", exercises:["Single-Leg Deadlift","B-Stance Deadlift","Double Sumo Deadlift"] },
+      hipthrust:{ label:"Hip Thrust", exercises:["Hip Thrust","B-Stance Hip Thrust","Single-Leg Hip Thrust"] },
+      ballistic:{ label:"Ballistic", exercises:["One-Arm Swing","Two-Arm Swing","Hand-to-Hand Swing"] },
+    }},
+    push: { label:"Push", subcats:{
+      horizontal:{ label:"Horizontal", exercises:["Bridge Floor Press","Push-up","Get-Up Sit-Up"] },
+      vertical:{ label:"Vertical", exercises:["Military Press","Half-Kneeling Press","Top-Down Press"] },
+      ballistic:{ label:"Ballistic", exercises:["Double Push Press","Push Jerk","Viking Push Press"] },
+    }},
+    pull: { label:"Pull", subcats:{
+      horizontal:{ label:"Horizontal", exercises:["Wide Row","Small Row","Gorilla Row"] },
+      vertical:{ label:"Vertical", exercises:["Chin-up","Pull-up","False-Grip Pull-up"] },
+      ballistic:{ label:"Ballistic", exercises:["Double Clean","Snatch","High Pull"] },
+    }}
+  };
+
+  const CARRIES = ["Suitcase Carry","Front Rack Carry","Overhead Carry","Front Rack March","Cook Drill March","Get-Up"];
+
+  const MOBILITY = [
+    { kind:"reps", label:"Windmill", value:"5x" },
+    { kind:"reps", label:"Half Kneeling Windmill", value:"5x" },
+    { kind:"reps", label:"Bent Press", value:"5x" },
+    { kind:"reps", label:"Mace 360", value:"10x" },
+    { kind:"reps", label:"Shield Cast", value:"10x" },
+    { kind:"reps", label:"Mace 10-2", value:"10x" },
+    { kind:"reps", label:"Clubbell Side Swing", value:"10x" },
+    { kind:"reps", label:"Clubbell Rotational Pullover to Pendulum", value:"10x" },
+    { kind:"reps", label:"Beast Crawl", value:"5x" },
+    { kind:"reps", label:"Lateral Crawl", value:"5x" },
+    { kind:"reps", label:"Dead Bug", value:"5x" },
+    { kind:"reps", label:"Bird Dog", value:"5x" },
+    { kind:"reps", label:"Side Bend", value:"5x" },
+    { kind:"reps", label:"Hip Airplane", value:"5x" },
+  ];
+
+  const leftCard = document.getElementById("leftCard");
+  const rightInner = document.getElementById("rightInner");
+  const btnMain = document.getElementById("btnMain");
+  const btnReset = document.getElementById("btnReset");
+  const wakeStatus = document.getElementById("wakeStatus");
+  const modePill = document.getElementById("modePill");
+  const kbOnlyPill = document.getElementById("kbOnlyPill");
+
+  // --- Date key
+  function todayKey(){
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,"0");
+    const da = String(d.getDate()).padStart(2,"0");
+    return `${y}-${m}-${da}`;
+  }
+
+  // --- Persist helpers
+  function loadJSON(k){ try{ const r = localStorage.getItem(k); return r? JSON.parse(r) : null; }catch{ return null; } }
+  function saveJSON(k,v){ localStorage.setItem(k, JSON.stringify(v)); }
+
+  function getKettlebellOnly(){
+    return localStorage.getItem(LS_KB_ONLY_KEY) === "1";
+  }
+  function saveKettlebellOnly(on){
+    localStorage.setItem(LS_KB_ONLY_KEY, on ? "1" : "0");
+  }
+  function updateKettlebellOnlyPill(){
+    if(kbOnlyPill){
+      kbOnlyPill.innerHTML = `KB Only: <strong>${getKettlebellOnly() ? "on" : "off"}</strong>`;
+    }
+  }
+  function getEverythingElsePool(){
+    return EVERYTHING_ELSE_NORMAL.slice();
+  }
+
+  function getTodayLesson(){
+    const today = todayKey();
+    const cachedDay = localStorage.getItem(LS_LESSON_DAY_KEY);
+    const cachedLesson = localStorage.getItem(LS_LESSON_TODAY_KEY);
+    if(cachedDay === today && cachedLesson){
+      return cachedLesson;
+    }
+    const lesson = drawLesson();
+    localStorage.setItem(LS_LESSON_DAY_KEY, today);
+    localStorage.setItem(LS_LESSON_TODAY_KEY, lesson);
+    return lesson;
+  }
+
+  function getPracticeMode(){
+    const mode = localStorage.getItem(LS_PRACTICE_MODE_KEY);
+    return mode === "progression" ? "progression" : "zen";
+  }
+  function savePracticeMode(mode){
+    localStorage.setItem(LS_PRACTICE_MODE_KEY, mode === "progression" ? "progression" : "zen");
+  }
+  function getTrainingStyle(){
+    const style = localStorage.getItem(LS_TRAINING_STYLE_KEY);
+    return ["strength","hybrid","hypertrophy"].includes(style) ? style : "hybrid";
+  }
+  function saveTrainingStyle(style){
+    localStorage.setItem(LS_TRAINING_STYLE_KEY, ["strength","hybrid","hypertrophy"].includes(style) ? style : "hybrid");
+  }
+  function getCircuitSeconds(mode, practiceMode, sessionNumber){
+    if(mode === "MINI") return 20*60;
+    if(practiceMode !== "progression") return 20*60;
+    const n = Math.max(1, Number(sessionNumber) || 1);
+    if(n <= 20) return 20*60;
+    if(n <= 40) return 25*60;
+    return 30*60;
+  }
+  function isBallisticItem(item){
+    return !!item && (item.subcatKey === "ballistic" || isBallisticExtraExercise(item.exercise));
+  }
+  function formatPrescription(item, trainingStyle){
+    const ballistic = isBallisticItem(item);
+    if(trainingStyle === "strength") return ballistic ? "5-10 reps" : "3-5 reps";
+    if(trainingStyle === "hypertrophy") return ballistic ? "10-20 reps" : "6-12 reps";
+    return `${ballistic ? 10 : 5} reps`;
+  }
+  function formatHypertrophyFocusPrescription(trainingStyle){
+    if(trainingStyle === "strength") return null;
+    if(trainingStyle === "hypertrophy") return null;
+    return "8-12 reps";
+  }
+  
+  const HYPERTROPHY_ORDER = ["push","hinge","pull","squat"];
+
+  function loadHypertrophyState(){
+    const saved = loadJSON(LS_HYPERTROPHY_QUEUE_KEY);
+    if(saved && saved.current){
+      return saved;
+    }
+    return { current: "push" };
+  }
+
+  function saveHypertrophyState(state){
+    saveJSON(LS_HYPERTROPHY_QUEUE_KEY, state);
+  }
+
+  function advanceHypertrophy(state){
+    const idx = HYPERTROPHY_ORDER.indexOf(state.current);
+    const next = HYPERTROPHY_ORDER[(idx + 1) % HYPERTROPHY_ORDER.length];
+    state.current = next;
+    saveHypertrophyState(state);
+  }
+
+  function isBallistic(subcatKey){
+    return subcatKey === "ballistic";
+  }
+
+  function isBallisticExtraExercise(name){
+    const ex = String(name || "").toLowerCase();
+    return ex.includes("mace") || ex.includes("swing") || ex.includes("cast") || ex.includes("10-2") || ex.includes("pendulum") || ex.includes("high pull") || ex.includes("clean") || ex.includes("snatch") || ex.includes("push press") || ex.includes("jerk");
+  }
+  function formatExtraPrescription(name){
+    const ex = String(name || "").toLowerCase();
+    if(ex.includes("curl") || ex.includes("tricep") || ex.includes("leg raise")) return "2 x 8-12";
+    if(ex.includes("ab wheel")) return "2 x 5";
+    return `2 x ${isBallisticExtraExercise(name) ? 10 : 5}`;
+  }
+
+  // --- Training session counter (FULL/MINI only)
+  function loadTrainCount(){ return loadJSON(LS_TRAIN_COUNT_KEY) || { n: 0, checkpointDone: false }; }
+  function saveTrainCount(v){ saveJSON(LS_TRAIN_COUNT_KEY, v); }
+
+  function loadFullStreak(){ return loadJSON(LS_FULL_STREAK_KEY) || { n: 0 }; }
+  function saveFullStreak(v){ saveJSON(LS_FULL_STREAK_KEY, v); }
+
+  function updateTrainPill(){
+    const tc = loadTrainCount();
+    const n = tc.n || 0;
+    const el = document.getElementById("trainPill");
+    if(!el) return;
+    let suffix = "";
+    if(n === 30) suffix = " - Halfway";
+    if(n >= 60) suffix = " - Checkpoint";
+    el.innerHTML = `Practice: <strong>${n} / 60</strong>${suffix}`;
+  }
+
+  function initTrainPillEditor(){
+    const el = document.getElementById("trainPill");
+    if(!el || el.dataset.longpressBound === "1") return;
+    el.dataset.longpressBound = "1";
+
+    let pressTimer = null;
+    let longPressTriggered = false;
+
+    const clearPressTimer = () => {
+      if(pressTimer){
+        clearTimeout(pressTimer);
+        pressTimer = null;
+      }
+    };
+
+    const openCountEditor = () => {
+      longPressTriggered = true;
+      const current = (loadTrainCount().n || 0);
+      const raw = window.prompt("Set Practice counter (0-999):", String(current));
+      if(raw === null) return;
+      const parsed = Number(raw);
+      if(!Number.isFinite(parsed)) return;
+      const next = Math.max(0, Math.min(999, Math.round(parsed)));
+      const tc = loadTrainCount();
+      tc.n = next;
+      saveTrainCount(tc);
+      updateTrainPill();
+      try{ maybeShowCheckpoint(); }catch{}
+    };
+
+    const startPress = () => {
+      clearPressTimer();
+      longPressTriggered = false;
+      pressTimer = setTimeout(openCountEditor, 700);
+    };
+
+    const endPress = (e) => {
+      if(longPressTriggered && e){
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      clearPressTimer();
+      setTimeout(() => { longPressTriggered = false; }, 0);
+    };
+
+    el.addEventListener("touchstart", startPress, { passive: true });
+    el.addEventListener("touchend", endPress);
+    el.addEventListener("touchcancel", endPress);
+    el.addEventListener("mousedown", startPress);
+    el.addEventListener("mouseup", endPress);
+    el.addEventListener("mouseleave", endPress);
+    el.addEventListener("contextmenu", (e) => e.preventDefault());
+  }
+
+  // --- Minimal modal (confirm + checkpoint)
+  const appModal = document.getElementById("appModal");
+  const modalTitleEl = document.getElementById("modalTitle");
+  const modalTextEl = document.getElementById("modalText");
+  const modalBodyEl = document.getElementById("modalBody");
+  const modalActionsEl = document.getElementById("modalActions");
+
+  function closeModal(){
+    if(!appModal) return;
+    appModal.classList.remove("show");
+    appModal.setAttribute("aria-hidden", "true");
+    if(modalBodyEl) modalBodyEl.innerHTML = "";
+    if(modalActionsEl) modalActionsEl.innerHTML = "";
+  }
+
+  function openModal({title="Chop Wood & Carry Water", text="-", bodyHTML="", actionsHTML=""} = {}){
+    if(!appModal) return;
+    if(modalTitleEl) modalTitleEl.textContent = title;
+    if(modalTextEl) modalTextEl.innerHTML = text;
+    if(modalBodyEl) modalBodyEl.innerHTML = bodyHTML || "";
+    if(modalActionsEl) modalActionsEl.innerHTML = actionsHTML || "";
+    appModal.classList.add("show");
+    appModal.setAttribute("aria-hidden", "false");
+  }
+
+  if(appModal){
+    appModal.addEventListener("click", (e) => { if(e.target === appModal) closeModal(); });
+  }
+
+  // --- Checkpoint: bell-up check (after 60 training sessions)
+  function showCheckpointModal(){
+    const items = [
+      {k:"rpe", t:"Average RPE < 7 (last 2 weeks)"},
+      {k:"pain", t:"No aches or irritation"},
+      {k:"tech", t:"Technique feels crisp and stable"},
+      {k:"sleep", t:"Sleep and recovery are stable"},
+      {k:"miss", t:"No missed sessions in the last 2 weeks"},
+    ];
+
+    const body = `
+      <div class="modalList">
+        ${items.map(i => `
+          <div class="modalItem">
+            <label>
+              <input type="checkbox" data-ck="${i.k}">
+              <span>${i.t}</span>
+            </label>
+          </div>
+        `).join("")}
+      </div>
+      <p class="modalText" style="margin-top:10px;">
+        Score <b>4-5</b>: you may move up one bell. Score <b>0-3</b>: stay with the same bell for now.
+      </p>
+      <p class="modalText" id="cpResult" style="margin-top:10px;"></p>
+    `;
+
+    const actions = `
+      <button id="btnCpScore" class="btn primary">Check score</button>
+      <button id="btnCpLater" class="btn">Later</button>
+    `;
+
+    openModal({
+      title: "Checkpoint (60 sessions)",
+      text: "You have completed 60 practice sessions. Time for a short check.",
+      bodyHTML: body,
+      actionsHTML: actions
+    });
+
+    document.getElementById("btnCpLater").addEventListener("click", () => {
+      const tc = loadTrainCount();
+      tc.checkpointDone = true; // don't keep nudging
+      saveTrainCount(tc);
+      updateTrainPill();
+      closeModal();
+    });
+
+    document.getElementById("btnCpScore").addEventListener("click", () => {
+      const cks = Array.from(document.querySelectorAll('input[type="checkbox"][data-ck]'));
+      const score = cks.reduce((a,el)=>a + (el.checked?1:0), 0);
+      const res = document.getElementById("cpResult");
+      if(res) res.innerHTML = `Score: <b>${score} / 5</b>.`;
+
+      const makeResetActions = (canGoUp) => `
+        <button id="btnCpUp" class="btn good" ${canGoUp?"" :"disabled"}>Move up (reset counter)</button>
+        <button id="btnCpAgain" class="btn primary">Another 60 (reset counter)</button>
+        <button id="btnCpClose" class="btn">Close</button>
+      `;
+
+      if(modalActionsEl){
+        modalActionsEl.innerHTML = makeResetActions(score >= 4);
+      }
+
+      const markDone = () => {
+        const tc = loadTrainCount();
+        tc.checkpointDone = true;
+        saveTrainCount(tc);
+        updateTrainPill();
+      };
+
+      const doReset = () => {
+        saveTrainCount({ n: 0, checkpointDone: true });
+        updateTrainPill();
+        // reset streak as well (fresh start)
+        saveFullStreak({ n: 0 });
+      };
+
+      const btnUp = document.getElementById("btnCpUp");
+      if(btnUp){
+        btnUp.addEventListener("click", () => {
+          if(score < 4) return;
+          doReset();
+          closeModal();
+          boot();
+        });
+      }
+
+      document.getElementById("btnCpAgain").addEventListener("click", () => {
+        doReset();
+        closeModal();
+        boot();
+      });
+
+      document.getElementById("btnCpClose").addEventListener("click", () => {
+        markDone();
+        closeModal();
+      });
+    });
+  }
+
+  function maybeShowCheckpoint(){
+    const tc = loadTrainCount();
+    if((tc.n || 0) >= 60 && !tc.checkpointDone){
+      showCheckpointModal();
+    }
+  }
+
+
+  // -------------------------
+  // Wakelock
+  // -------------------------
+  let wakeLock = null;
+  function setWakeStatus(on){ if(wakeStatus) wakeStatus.innerHTML = `Wakelock: <strong>${on?"on":"off"}</strong>`; }
+  async function requestWakeLock(){
+    try{
+      if(!('wakeLock' in navigator)) { setWakeStatus(false); return; }
+      if(wakeLock) return;
+      wakeLock = await navigator.wakeLock.request('screen');
+      setWakeStatus(true);
+      wakeLock.addEventListener('release', () => { wakeLock = null; setWakeStatus(false); });
+    }catch{ wakeLock = null; setWakeStatus(false); }
+  }
+  async function releaseWakeLock(){
+    try{ if(wakeLock){ await wakeLock.release(); wakeLock = null; } }
+    finally{ setWakeStatus(false); }
+  }
+
+  // -------------------------
+  // Beep
+  // -------------------------
+  function beep(times=3){
+    try{
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      const ctx = new AudioContext();
+      const now = ctx.currentTime;
+      for(let i=0;i<times;i++){
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = 1200; // lower freq cuts through noise better
+        gain.gain.setValueAtTime(0.0001, now + i*0.18);
+        gain.gain.exponentialRampToValueAtTime(0.6, now + i*0.18 + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + i*0.18 + 0.35);
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.start(now + i*0.18); 
+        osc.stop(now + i*0.18 + 0.35);
+      }
+      setTimeout(() => ctx.close(), 900);
+    }catch{}
+  }
+
+  // -------------------------
+  // Timer helper
+  // -------------------------
+  function fmt(sec){ const m=Math.floor(sec/60); const s=sec%60; return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0'); }
+
+  function makeTimer(totalSeconds, onTick){
+    return {
+      total: totalSeconds,
+      left: totalSeconds,
+      running: false,
+      _t: null,
+      _persistTick: onTick,
+      start(onDone){
+        if(this.running) return;
+        this.running = true;
+        const tick = () => {
+          if(!this.running) return;
+          const f = this._onTick || onTick; f && f(this.left, this.total);
+          if(this.left <= 0){
+            this.running=false; this._t=null;
+            try{ onDone && onDone(); }catch{}
+            return;
+          }
+          this._t = setTimeout(() => { this.left -= 1; tick(); }, 1000);
+        };
+        tick();
+      },
+      pause(){ this.running=false; if(this._t) clearTimeout(this._t); this._t=null; },
+      reset(){ this.pause(); this.left=this.total; { const f = this._onTick || onTick; f && f(this.left,this.total); } },
+      setTotal(totalSeconds){ this.pause(); this.total=totalSeconds; this.left=totalSeconds; { const f = this._onTick || onTick; f && f(this.left,this.total); } },
+    };
+  }
+
+  // -------------------------
+  // Memory model for generation
+  // -------------------------
+  function defaultMemory(){
+    const mem = { lastCarry:null, lastEverythingElse:null, patterns:{} };
+    for(const p of Object.keys(LIB)){
+      mem.patterns[p] = { lastSubcat:null, lastExerciseBySubcat:{}, subcatBag:[], exerciseBags:{} };
+      for(const sc of Object.keys(LIB[p].subcats)){
+        mem.patterns[p].lastExerciseBySubcat[sc] = null;
+        mem.patterns[p].exerciseBags[sc] = [];
+      }
+    }
+    return mem;
+  }
+  function loadMemory(){
+    const parsed = loadJSON(LS_MEM_KEY);
+    if(!parsed) return defaultMemory();
+    const mem = defaultMemory();
+    try{
+      if(parsed.lastCarry) mem.lastCarry = parsed.lastCarry;
+      if(parsed.lastEverythingElse) mem.lastEverythingElse = parsed.lastEverythingElse;
+      if(parsed.patterns){
+        for(const p of Object.keys(LIB)){
+          if(parsed.patterns[p]){
+            mem.patterns[p].lastSubcat = parsed.patterns[p].lastSubcat ?? null;
+            if(Array.isArray(parsed.patterns[p].subcatBag)){
+              mem.patterns[p].subcatBag = parsed.patterns[p].subcatBag.filter(sc => Object.prototype.hasOwnProperty.call(LIB[p].subcats, sc));
+            }
+            if(parsed.patterns[p].lastExerciseBySubcat){
+              for(const sc of Object.keys(LIB[p].subcats)){
+                mem.patterns[p].lastExerciseBySubcat[sc] = parsed.patterns[p].lastExerciseBySubcat[sc] ?? null;
+              }
+            }
+            if(parsed.patterns[p].exerciseBags){
+              for(const sc of Object.keys(LIB[p].subcats)){
+                const bag = parsed.patterns[p].exerciseBags[sc];
+                if(Array.isArray(bag)){
+                  mem.patterns[p].exerciseBags[sc] = bag.filter(ex => LIB[p].subcats[sc].exercises.includes(ex));
+                }
+              }
+            }
+          }
+        }
+      }
+    }catch{}
+    return mem;
+  }
+  function saveMemory(mem){ saveJSON(LS_MEM_KEY, mem); }
+
+  // Random helpers
+  function randInt(n){ return Math.floor(Math.random()*n); }
+  function choice(arr){ return arr[randInt(arr.length)]; }
+  function shuffle(arr){
+    const a = arr.slice();
+    for(let i=a.length-1;i>0;i--){
+      const j = randInt(i+1);
+      [a[i],a[j]] = [a[j],a[i]];
+    }
+    return a;
+  }
+
+  // -------------------------
+  // Chop Wood & Carry Water - Lesson of the Day (Shuffle Bag)
+  // -------------------------
+  const LS_LESSON_KEY = "cw_lessons_bag_v2";
+
+  const LESSONS = [
+    "Focus on the process, not the reward. Greatness begins with faithfully executing simple daily tasks.",
+    "You are always building your own house. Who you become matters more than what you achieve.",
+    "Dream big. Start small. Be ridiculously faithful. Everyone wants greatness until it's time to do what greatness requires.",
+    "With one eye on the goal, you only have one eye for the journey. Focus on the next step, not the summit.",
+    "Nothing is a test; everything is an opportunity to learn and grow.",
+    "Your value comes from who you are, not from what you do.",
+    "Achievement without meaning never satisfies. Success alone cannot fill an internal void.",
+    "Discouragement is the most powerful weapon. Guard your mind by choosing what you consume and how you think.",
+    "Train your brain to see what went well. Confidence grows where attention goes.",
+    "You do not shine under bright lights; bright lights reveal your work in the dark. There are no shortcuts to mastery.",
+    "Comparison steals joy. The grass is greener where you water it.",
+    "The rough side shapes your character. Hardship prepares you for sustained success.",
+    "Words create pictures. Pictures influence feelings. Feelings drive actions. Actions shape destiny.",
+    "Mental training is not a quick fix. Small efforts cannot offset daily negative habits.",
+    "Growth happens in plateaus and leaps, not in a straight line. Trust the process during stagnation.",
+    "Everything impacts everything. Mastery is total integration-every detail matters.",
+    "Invisible growth precedes visible success. Without deep roots, height cannot be sustained.",
+    "There are signs that you are on the right path-discipline, growth, and character development.",
+    "Be fully present. Presence is a decision.",
+    "You achieve goals; you live a mission. A mission gives direction when goals fade.",
+    "Release the outcome; commit to the effort. Control the controllables.",
+    "Failure is part of greatness. Persistence separates the great from the average.",
+    "Some goals seem controllable but are not. Focus on behaviors, not outcomes.",
+    "The real battle is internal. Discipline is stronger than motivation.",
+    "Live by principles, not emotions. Feelings change; principles endure.",
+    "You have an internal intensity dial. Learn to consciously turn it up and down.",
+    "'They' does not exist. Stop living according to imagined expectations.",
+    "Identity is shaped by choices. You can redefine who you are."
+  ];
+
+  function loadLessonBag(){
+    try{
+      const saved = localStorage.getItem(LS_LESSON_KEY);
+      if(saved){
+        const parsed = JSON.parse(saved);
+        if(Array.isArray(parsed) && parsed.length) return parsed;
+      }
+    }catch{}
+    const fresh = shuffle(LESSONS);
+    localStorage.setItem(LS_LESSON_KEY, JSON.stringify(fresh));
+    return fresh;
+  }
+
+  function drawLesson(){
+    let bag = loadLessonBag();
+    const lesson = bag.shift();
+    if(bag.length === 0){
+      bag = shuffle(LESSONS);
+    }
+    localStorage.setItem(LS_LESSON_KEY, JSON.stringify(bag));
+    return lesson;
+  }
+  function refillSubcategoryBag(patternKey, mem){
+    const subcats = Object.keys(LIB[patternKey].subcats);
+    const last = mem.patterns[patternKey].lastSubcat;
+    let bag = shuffle(subcats);
+
+    if(last && bag.length > 1 && bag[0] === last){
+      const swapIdx = bag.findIndex(sc => sc !== last);
+      if(swapIdx > 0){
+        [bag[0], bag[swapIdx]] = [bag[swapIdx], bag[0]];
+      }
+    }
+
+    mem.patterns[patternKey].subcatBag = bag;
+  }
+
+  function pickSubcategory(patternKey, mem){
+    const patternMem = mem.patterns[patternKey];
+    const subcats = Object.keys(LIB[patternKey].subcats);
+    if(!patternMem.subcatBag || !patternMem.subcatBag.length){
+      refillSubcategoryBag(patternKey, mem);
+    }
+
+    let bag = patternMem.subcatBag;
+    const last = patternMem.lastSubcat;
+
+    if(!bag.length){
+      refillSubcategoryBag(patternKey, mem);
+      bag = patternMem.subcatBag;
+    }
+
+    if(last && bag.length > 1 && bag[0] === last){
+      const swapIdx = bag.findIndex(sc => sc !== last);
+      if(swapIdx > 0){
+        [bag[0], bag[swapIdx]] = [bag[swapIdx], bag[0]];
+      }
+    }
+
+    let picked = bag.shift();
+
+    if(last && picked === last){
+      const fallback = subcats.find(sc => sc !== last);
+      if(fallback){
+        picked = fallback;
+        const idx = bag.indexOf(fallback);
+        if(idx >= 0) bag.splice(idx, 1);
+      }
+    }
+
+    patternMem.subcatBag = bag;
+    return picked;
+  }
+
+  function refillExerciseBag(patternKey, subcatKey, mem){
+    const exList = LIB[patternKey].subcats[subcatKey].exercises.slice();
+    const lastEx = mem.patterns[patternKey].lastExerciseBySubcat[subcatKey];
+    let bag = shuffle(exList);
+
+    if(lastEx && bag.length > 1 && bag[0] === lastEx){
+      const swapIdx = bag.findIndex(x => x !== lastEx);
+      if(swapIdx > 0){
+        [bag[0], bag[swapIdx]] = [bag[swapIdx], bag[0]];
+      }
+    }
+
+    mem.patterns[patternKey].exerciseBags[subcatKey] = bag;
+  }
+
+  function pickExercise(patternKey, subcatKey, mem){
+    const patternMem = mem.patterns[patternKey];
+    const exList = LIB[patternKey].subcats[subcatKey].exercises;
+    if(!patternMem.exerciseBags[subcatKey] || !patternMem.exerciseBags[subcatKey].length){
+      refillExerciseBag(patternKey, subcatKey, mem);
+    }
+
+    let bag = patternMem.exerciseBags[subcatKey];
+    const lastEx = patternMem.lastExerciseBySubcat[subcatKey];
+
+    if(!bag.length){
+      refillExerciseBag(patternKey, subcatKey, mem);
+      bag = patternMem.exerciseBags[subcatKey];
+    }
+
+    if(lastEx && bag.length > 1 && bag[0] === lastEx){
+      const swapIdx = bag.findIndex(x => x !== lastEx);
+      if(swapIdx > 0){
+        [bag[0], bag[swapIdx]] = [bag[swapIdx], bag[0]];
+      }
+    }
+
+    let picked = bag.shift();
+
+    if(lastEx && picked === lastEx){
+      const fallback = exList.find(x => x !== lastEx);
+      if(fallback){
+        picked = fallback;
+        const idx = bag.indexOf(fallback);
+        if(idx >= 0) bag.splice(idx, 1);
+      }
+    }
+
+    patternMem.exerciseBags[subcatKey] = bag;
+    return picked;
+  }
+
+  function ladderFor(item, mode){
+    const ex = (item.exercise||"").toLowerCase();
+    const isDouble = ex.includes("double");
+    const isBallistic = (item.subcatKey === "ballistic");
+
+    let ladder = "2-3-5";
+    if(isBallistic && isDouble) ladder = "4-6-10";
+    else if(isBallistic) ladder = "5-10-15";
+
+    if(mode === "MINI"){
+      if(ladder === "2-3-5") return "2-3-4";
+      if(ladder === "5-10-15") return "5-7-8";
+      if(ladder === "4-6-10") return "2-4-6";
+    }
+    return ladder;
+  }
+
+  function applyKettlebellOnlyReplacement(subcatKey, exercise){
+    if(!getKettlebellOnly() || subcatKey !== "vertical") return exercise;
+    if(exercise === "Chin-up") return "Kettlebell Pullover";
+    if(exercise === "Pull-up") return "Kettlebell Halo";
+    if(exercise === "False-Grip Pull-up") return "Kettlebell High Pull";
+    return exercise;
+  }
+
+  function generateSession(mode = "MINI"){
+    const mem = loadMemory();
+    const picks = [];
+    const hypoState = loadHypertrophyState();
+    const hypertrophyPattern = hypoState.current;
+    let hypertrophyApplied = false;
+    for(const patternKey of ["squat","hinge","push","pull"]){
+      const subcatKey = pickSubcategory(patternKey, mem);
+      const rawEx = pickExercise(patternKey, subcatKey, mem);
+      const ex = patternKey === "pull" ? applyKettlebellOnlyReplacement(subcatKey, rawEx) : rawEx;
+      picks.push({
+        patternKey,
+        patternLabel: LIB[patternKey].label,
+        subcatKey,
+        subcatLabel: LIB[patternKey].subcats[subcatKey].label,
+        exercise: ex
+      });
+      mem.patterns[patternKey].lastSubcat = subcatKey;
+      mem.patterns[patternKey].lastExerciseBySubcat[subcatKey] = rawEx;
+    }
+
+    if(getTrainingStyle() === "hybrid"){
+      for(const item of picks){
+        if(item.patternKey !== hypertrophyPattern) continue;
+        if(!isBallistic(item.subcatKey) && !isBallisticExtraExercise(item.exercise)){
+          item.hypertrophy = true;
+          hypertrophyApplied = true;
+        }
+        break;
+      }
+    }
+
+    if(hypertrophyApplied){
+      advanceHypertrophy(hypoState);
+    }
+
+    let optional = null;
+    if(mode === "FULL"){
+      const pool = getEverythingElsePool();
+      let options = pool.filter(ex => ex !== mem.lastEverythingElse);
+      if(!options.length) options = pool.slice();
+      optional = choice(options);
+      mem.lastEverythingElse = optional;
+    }
+
+    const circuit = shuffle(picks);
+    const carryAllowed = CARRIES.filter(c => c !== mem.lastCarry);
+    const carry = choice(carryAllowed.length ? carryAllowed : CARRIES);
+    mem.lastCarry = carry;
+    return { circuit, carry, optional, memNext: mem };
+  }
+
+  // -------------------------
+  // Confetti
+  // -------------------------
+  const confCanvas = document.getElementById('confettiCanvas');
+  const confCtx = confCanvas.getContext('2d');
+  function confettiBurst(ms=1400){
+    const w = confCanvas.width = window.innerWidth;
+    const h = confCanvas.height = window.innerHeight;
+    confCanvas.style.display = 'block';
+    const pieces = Array.from({length: 160}, () => ({
+      x: Math.random()*w,
+      y: -20 - Math.random()*h*0.2,
+      vx: (Math.random()*2-1)*6,
+      vy: 3 + Math.random()*8,
+      s: 4 + Math.random()*6,
+      r: Math.random()*Math.PI*2,
+      vr: (Math.random()*2-1)*0.2,
+      a: 1,
+    }));
+    const start = performance.now();
+    const draw = (t) => {
+      const elapsed = t - start;
+      confCtx.clearRect(0,0,w,h);
+      for(const p of pieces){
+        p.x += p.vx;
+        p.y += p.vy;
+        p.r += p.vr;
+        p.vy *= 0.99;
+        p.vx *= 0.995;
+        if(elapsed > ms*0.6) p.a = Math.max(0, 1 - (elapsed - ms*0.6) / (ms*0.4));
+        confCtx.save();
+        confCtx.globalAlpha = p.a;
+        confCtx.translate(p.x,p.y);
+        confCtx.rotate(p.r);
+        // no fixed colors: use varying grayscale + accent tint
+        const shade = 180 + Math.floor(Math.random()*60);
+        confCtx.fillStyle = `rgba(${shade},${shade},${shade},${p.a})`;
+        confCtx.fillRect(-p.s/2, -p.s/2, p.s, p.s*0.6);
+        confCtx.restore();
+      }
+      if(elapsed < ms){ requestAnimationFrame(draw); }
+      else { confCtx.clearRect(0,0,w,h); confCanvas.style.display='none'; }
+    };
+    requestAnimationFrame(draw);
+  }
+
+  // -------------------------
+  // Rendering: Right panel (timers)
+  // -------------------------
+  const timers = {
+    circuit: null,
+    carry: null,
+    mobility: null,
+    walk: null,
+    breathing: null,
+  };
+
+  function renderRightNone(){
+    const rightCard = document.getElementById("rightCard");
+    if(rightCard) rightCard.classList.remove("active");
+    rightInner.innerHTML = `
+      <h2>Status</h2>
+      <p class="small">No active timer.</p>
+    `;
+  }
+
+  function renderRightTimer(title, timerId){
+    const rightCard = document.getElementById("rightCard");
+    if(rightCard) rightCard.classList.add("active");
+    rightInner.innerHTML = `
+      <h2>${title}</h2>
+      <div class="label">Timer</div>
+      <div id="timeDisplay" class="time">00:00</div>
+      <div class="row" style="margin-top:10px;">
+        <button id="btnStart" class="btn primary">Start</button>
+        <button id="btnPause" class="btn">Pause</button>
+        <button id="btnResetT" class="btn">Reset</button>
+      </div>
+      <div id="sub" class="small" style="margin-top:10px;"></div>
+    `;
+
+    const timeEl = document.getElementById('timeDisplay');
+    const sub = document.getElementById('sub');
+
+    const t = timers[timerId];
+    if(!t){ timeEl.textContent = "--:--"; return; }
+
+    const update = (left,total) => {
+      timeEl.textContent = fmt(left);
+      const pct = total ? Math.round((1 - left/total)*100) : 0;
+      sub.textContent = `${pct}%`;
+      if(t._persistTick) t._persistTick(left, total);
+      persistActive();
+    };
+
+    // rewire onTick
+    t._onTick = update;
+    update(t.left, t.total);
+
+    document.getElementById('btnStart').addEventListener('click', () => {
+      if(timerId === 'walk' || timerId === 'mobility'){
+        // no wakelock
+      } else {
+        requestWakeLock();
+      }
+      t.start(() => {
+        beep(1);
+        // Auto-chaining:
+        if(timerId === 'circuit' && typeof startCarry === 'function'){
+          startCarry(true);
+        }
+      });
+      persistActive();
+    });
+    document.getElementById('btnPause').addEventListener('click', () => {
+      t.pause();
+      if(timerId !== 'walk' && timerId !== 'mobility') releaseWakeLock();
+      persistActive();
+    });
+    document.getElementById('btnResetT').addEventListener('click', () => {
+      t.reset();
+      if(timerId !== 'walk' && timerId !== 'mobility') releaseWakeLock();
+      persistActive();
+    });
+  }
+
+  // -------------------------
+  // Active day state
+  // -------------------------
+  function loadDayState(){
+    const st = loadJSON(LS_DAY_KEY);
+    if(!st) return null;
+    if(st.day !== todayKey()) return null;
+    return st;
+  }
+  function saveDayState(st){ saveJSON(LS_DAY_KEY, st); }
+
+  function loadActive(){
+    const a = loadJSON(LS_ACTIVE_KEY);
+    if(!a) return null;
+    if(a.day !== todayKey()) return null;
+    return a;
+  }
+  function saveActive(a){ saveJSON(LS_ACTIVE_KEY, a); }
+  function clearActive(){ localStorage.removeItem(LS_ACTIVE_KEY); }
+
+  function setModePill(mode){
+    if(!modePill) return;
+    if(!mode || mode === "-"){
+      modePill.style.display = 'none';
+      modePill.innerHTML = '';
+      return;
+    }
+    modePill.style.display = 'inline-flex';
+    modePill.innerHTML = `Mode: <strong>${mode}</strong>`;
+  }
+
+  // -------------------------
+  // Gate
+  // -------------------------
+  const gateDef = [
+    { key:'soreness', label:'Soreness / Recovery', choices:['Pain','Limited','Stiff','Slightly stiff','Loose','Fresh'] },
+    { key:'energy',   label:'Energy / Stress',     choices:['Empty','Heavy','Tired','Neutral','Good','Sharp'] },
+    { key:'sleep',    label:'Sleep quality',       choices:['Very poor','Poor','Interrupted','Okay','Good','Restorative'] },
+  ];
+
+function computeBand(total){
+    if(total >= 12) return { band:'GOOD', label:'12-15', cls:'good' };
+    if(total >= 8)  return { band:'MID', label:'8-11', cls:'mid' };
+    return { band:'REC', label:'0-7', cls:'rec' };
+  }
+
+  function renderGate(existing){
+    const _raw = existing?.scores ?? { soreness:null, energy:null, sleep:null };
+    const scores = { soreness: (_raw.soreness ?? null), energy: (_raw.energy ?? null), sleep: (_raw.sleep ?? null) };
+
+    leftCard.innerHTML = `
+      <h2>Recovery Gate</h2>
+      <p class="small" style="margin-bottom:14px;">Set the tone for today before choosing the work.</p>
+      <div class="gate-grid">
+        ${gateDef.map(g => `
+          <div class="gate-row">
+            <div class="label">${g.label}</div>
+            <div class="score-row" data-gkey="${g.key}">
+              ${[0,1,2,3,4,5].map(n => `<div class="score-btn" data-score="${n}">${n}</div>`).join('')}
+            </div>
+            <div class="score-label" id="lbl-${g.key}">-</div>
+          </div>
+        `).join('')}
+        <div class="total">
+          <div>
+            <div class="label">Total</div>
+            <div class="n" id="totalN">0</div>
+          </div>
+          <div id="band" class="badge">-</div>
+        </div>
+        <div class="row">
+          <button id="btnStartSession" class="btn primary" disabled>Open session</button>
+          <span class="small">(after filling all 3 scores)</span>
+        </div>
+      </div>
+    `;
+
+    const totalEl = document.getElementById('totalN');
+    const bandEl = document.getElementById('band');
+    const btnStart = document.getElementById('btnStartSession');
+
+    function updateUI(){
+      const vals = Object.values(scores);
+      const complete = vals.every(v => typeof v === 'number');
+      const total = vals.reduce((a,b) => a + (typeof b==='number'?b:0), 0);
+      totalEl.textContent = String(total);
+      const b = computeBand(total);
+      bandEl.className = `badge ${b.cls}`;
+      bandEl.textContent = b.label;
+      // update selected text labels
+      gateDef.forEach(g => {
+        const v = scores[g.key];
+        const el = document.getElementById(`lbl-${g.key}`);
+        if(!el) return;
+        if(typeof v === 'number') el.textContent = g.choices[v] ?? '-';
+        else el.textContent = '-';
+      });
+      btnStart.disabled = !complete;
+    }
+
+    // restore active styles
+    document.querySelectorAll('.score-row').forEach(row => {
+      const key = row.dataset.gkey;
+      const val = scores[key];
+      row.querySelectorAll('.score-btn').forEach(btn => {
+        if(val !== null && Number(btn.dataset.score) === val) btn.classList.add('active');
+      });
+    });
+
+    document.querySelectorAll('.score-row').forEach(row => {
+      row.addEventListener('click', (e) => {
+        const t = e.target;
+        if(!t.classList.contains('score-btn')) return;
+        const key = row.dataset.gkey;
+        const v = Number(t.dataset.score);
+        scores[key] = v;
+        row.querySelectorAll('.score-btn').forEach(b => b.classList.remove('active'));
+        t.classList.add('active');
+        updateUI();
+      });
+    });
+
+    btnStart.addEventListener('click', () => {
+      const total = Object.values(scores).reduce((a,b)=>a+b,0);
+      const band = computeBand(total).band;
+      let mode = (band === 'GOOD') ? 'FULL' : (band === 'MID') ? 'MINI' : 'RECOVERY';
+
+      // Hard cap: after 3x FULL in a row, force a mobility day.
+      const fs = loadFullStreak();
+      const forcedRecovery = (fs.n >= 3 && mode === 'FULL');
+      if(forcedRecovery) mode = 'RECOVERY';
+
+      // lock gate for today
+      saveDayState({ day: todayKey(), scores, total, modeLocked: mode, forcedRecovery });
+
+      // create active state
+      if(mode === 'FULL' || mode === 'MINI'){
+        const s = generateSession(mode);
+          // save memory and count immediately on generation
+          saveMemory(s.memNext);
+          const tc = loadTrainCount();
+          tc.n = (tc.n || 0) + 1;
+          saveTrainCount(tc);
+          updateTrainPill();
+          const practiceMode = getPracticeMode();
+          const trainingStyle = getTrainingStyle();
+          const sessionNumber = (tc.n || 1);
+        saveActive({ day: todayKey(), mode, phase:'TRAINING', session:s, practiceMode, trainingStyle, sessionNumber, timers:{
+          circuitLeft: getCircuitSeconds(mode, practiceMode, sessionNumber),
+          carryLeft: DUR.carrySec,
+        }});
+      } else {
+        saveActive({ day: todayKey(), mode, phase:'MOBILITY', timers:{ mobilityLeft: DUR.mobilitySec }, mobilityChecks: {} });
+      }
+
+      boot();
+    });
+
+    updateUI();
+    renderRightNone();
+    // If you hit 60 training sessions, show the bell-up checkpoint once.
+    try{ maybeShowCheckpoint(); }catch{}
+
+    setModePill('-');
+  }
+
+  // -------------------------
+  // Carry timer
+  // -------------------------
+  function startCarry(autoStart=false){
+    const a = loadActive();
+    if(!a) return;
+    a.timers = a.timers || {};
+    if(typeof a.timers.carryLeft !== 'number') a.timers.carryLeft = DUR.carrySec;
+    saveActive(a);
+
+    timers.carry = makeTimer(DUR.carrySec, (left,total) => {
+      const active = loadActive();
+      if(!active) return;
+      active.timers = active.timers || {};
+      active.timers.carryLeft = left;
+      saveActive(active);
+    });
+    timers.carry.left = Math.max(0, a.timers.carryLeft ?? DUR.carrySec);
+
+    renderRightTimer('Loaded Carry (05:00)', 'carry');
+    if(autoStart){
+      const startBtn = rightInner.querySelector('#btnStart');
+      if(startBtn) startBtn.click();
+    }
+  }
+
+  // -------------------------
+  // Training screen
+  // -------------------------
+  function renderTraining(active){
+    const mode = active.mode;
+    const session = active.session;
+    const lesson = getTodayLesson();
+    const practiceMode = active.practiceMode || "zen";
+    const trainingStyle = active.trainingStyle || "hybrid";
+    const sessionNumber = active.sessionNumber || (loadTrainCount().n || 1);
+    const circuitSeconds = getCircuitSeconds(mode, practiceMode, sessionNumber);
+    const focusPrescription = formatHypertrophyFocusPrescription(trainingStyle);
+
+    leftCard.innerHTML = `
+      <h2>Today</h2>
+
+      <h3 class="sectionTitle">Lesson of the Day</h3>
+      <div class="exercise" style="margin-bottom:18px;">
+        <div class="ex-left">
+          <div class="ex-meta" style="font-style:italic; line-height:1.5;">${lesson}</div>
+        </div>
+      </div>
+
+      <details class="warmup">
+        <summary>Warming-up</summary>
+        <ul class="warmup-list">
+          <li>Three way neck</li>
+          <li>Fingers &amp; Wrist</li>
+          <li>Elbow Circles</li>
+          <li>Halo</li>
+          <li>Egyptian</li>
+          <li>Hip Circels</li>
+          <li>Toes, Feet, Ankle</li>
+          <li>Prying Cobra</li>
+          <li>Frog</li>
+          <li>Tug Of War Squat</li>
+        </ul>
+      </details>
+
+      <h3 class="sectionTitle">Main Training</h3>
+      <div class="small" style="margin-bottom:10px;">${trainingStyle[0].toUpperCase() + trainingStyle.slice(1)} - Circuit: ${fmt(circuitSeconds)} - repeat calmly with clean reps.</div>
+      <div id="sessionList" style="display:grid; gap:10px;"></div>
+
+      ${mode === 'FULL' && session.optional ? `
+      <div class="hr"></div>
+      <h3 class="sectionTitle">Optional</h3>
+      <div class="exercise optionalCard">
+        <div class="ex-left">
+          <div class="ex-title">${session.optional}</div>
+          <div class="ex-meta">${formatExtraPrescription(session.optional)}</div>
+        </div>
+        <div class="pill">Optional</div>
+      </div>` : ``}
+
+      <div class="hr"></div>
+      <h3 class="sectionTitle">Loaded Carry</h3>
+      <div class="exercise carryCard" style="align-items:center;">
+        <div class="ex-left">
+          <div class="ex-title">${session.carry}</div>
+          <div class="ex-meta">05:00 easy - switch sides when needed</div>
+        </div>
+        <div class="pill">5 min</div>
+      </div>
+
+      <div class="hr"></div>
+      <div class="row">
+        <button id="btnCarryTimer" class="btn good">Carry timer</button>
+        <button id="btnFinish" class="btn danger">Finish session</button>
+      </div>
+    `;
+
+    const list = document.getElementById('sessionList');
+    list.innerHTML = '';
+    session.circuit.forEach((item) => {
+      const div = document.createElement('div');
+      div.className = 'exercise';
+      div.innerHTML = `
+        <div class="ex-left">
+          <div class="ex-title">${item.exercise}</div>
+          <div class="ex-meta">${item.patternLabel} • ${item.subcatLabel} • <b>${item.hypertrophy 
+      ? focusPrescription
+      : formatPrescription(item, trainingStyle)
+    }</b></div>
+        </div>
+        <div class="pill">${item.patternLabel}</div>
+      `;
+      list.appendChild(div);
+    });
+
+    timers.circuit = makeTimer(circuitSeconds, (left,total) => {
+      const a = loadActive();
+      if(!a) return;
+      a.timers = a.timers || {};
+      a.timers.circuitLeft = left;
+      saveActive(a);
+    });
+    timers.circuit.left = Math.max(0, active.timers?.circuitLeft ?? circuitSeconds);
+
+    renderRightTimer(`Circuit (${fmt(circuitSeconds)})`, 'circuit');
+    setModePill(mode);
+
+    document.getElementById('btnFinish').addEventListener('click', () => {
+      completeSession();
+    });
+    document.getElementById('btnCarryTimer').addEventListener('click', () => {
+      startCarry(false);
+    });
+
+    releaseWakeLock();
+  }
+
+  // -------------------------
+  // Mobility screen
+  // -------------------------
+  function renderMobility(active){
+    leftCard.innerHTML = `
+      <h2>Loaded Mobility</h2>
+      <div class="small">Follow the routine in order. Check off what you completed.</div>
+      <div style="display:grid; gap:10px; margin-top:10px;" id="mobList"></div>
+      <div class="hr"></div>
+      <div class="row" style="gap:10px;">
+        <button id="btnAddWalk" class="btn rec">Add walk</button>
+        <button id="btnAddBreath" class="btn primary">Add breathing</button>
+        <button id="btnFinish" class="btn danger">Finish session</button>
+      </div>
+      <p class="small" style="margin-top:10px;">Walking: no wakelock - Breathing: wakelock on.</p>
+    `;
+
+    const mobList = document.getElementById('mobList');
+    mobList.innerHTML = '';
+    const checks = active.mobilityChecks || {};
+    MOBILITY.forEach((m, i) => {
+      const id = `m${i}`;
+      const div = document.createElement('div');
+      div.className = 'exercise';
+      const checked = !!checks[id];
+      div.innerHTML = `
+        <div class="ex-left">
+          <div class="ex-title">${m.value} ${m.label}</div>
+          <div class="ex-meta">${m.kind === 'time' ? 'tijd' : 'reps'}</div>
+        </div>
+        <div class="pill" style="cursor:pointer; user-select:none;" data-check="${id}">${checked ? '✓' : '○'}</div>
+      `;
+      mobList.appendChild(div);
+    });
+
+    mobList.addEventListener('click', (e) => {
+      const t = e.target;
+      if(!t.classList.contains('pill')) return;
+      const id = t.getAttribute('data-check');
+      if(!id) return;
+      const a = loadActive();
+      if(!a) return;
+      a.mobilityChecks = a.mobilityChecks || {};
+      a.mobilityChecks[id] = !a.mobilityChecks[id];
+      saveActive(a);
+      t.textContent = a.mobilityChecks[id] ? '✓' : '○';
+    });
+
+    // mobility timer (no wakelock)
+    timers.mobility = makeTimer(DUR.mobilitySec, (left,total) => {
+      const a = loadActive();
+      if(!a) return;
+      a.timers = a.timers || {};
+      a.timers.mobilityLeft = left;
+      saveActive(a);
+    });
+    timers.mobility.left = Math.max(0, active.timers?.mobilityLeft ?? DUR.mobilitySec);
+
+    renderRightTimer('Mobility (25:00)', 'mobility');
+    setModePill('-');
+    releaseWakeLock();
+
+    document.getElementById('btnAddWalk').addEventListener('click', () => renderWalkPicker());
+    document.getElementById('btnAddBreath').addEventListener('click', () => renderBreathPicker());
+    document.getElementById('btnFinish').addEventListener('click', () => completeSession());
+  }
+
+  // -------------------------
+  // Walk
+  // -------------------------
+  function renderWalkPicker(){
+    leftCard.innerHTML = `
+      <h2>Walking</h2>
+      <p class="small">Choose duration (no wakelock).</p>
+      <div class="row" style="margin-top:10px;">
+        <button class="btn rec" data-w="600">10 min</button>
+        <button class="btn rec" data-w="1200">20 min</button>
+        <button class="btn rec" data-w="1800">30 min</button>
+      </div>
+      <div class="hr"></div>
+      <div class="row">
+        <button id="btnBack" class="btn">Back</button>
+      </div>
+    `;
+    leftCard.querySelectorAll('button[data-w]').forEach(b => {
+      b.addEventListener('click', () => {
+        const sec = Number(b.getAttribute('data-w'));
+        const a = loadActive() || { day: todayKey(), mode:'RECOVERY', phase:'WALK', timers:{} };
+        a.phase = 'WALK';
+        a.timers = a.timers || {};
+        a.timers.walkLeft = sec;
+        saveActive(a);
+        boot();
+      });
+    });
+    document.getElementById('btnBack').addEventListener('click', () => boot());
+    renderRightNone();
+    // If you hit 60 training sessions, show the bell-up checkpoint once.
+    try{ maybeShowCheckpoint(); }catch{}
+
+    setModePill('-');
+  }
+
+  function renderWalk(active){
+    leftCard.innerHTML = `
+      <h2>Walking</h2>
+      <p class="small">You do not need to keep the screen on.</p>
+      <div class="hr"></div>
+      <div class="row">
+        <button id="btnBack" class="btn">Back</button>
+        <button id="btnFinish" class="btn danger">Finish session</button>
+      </div>
+    `;
+
+    timers.walk = makeTimer(active.timers.walkLeft ?? 600, (left,total) => {
+      const a = loadActive();
+      if(!a) return;
+      a.timers.walkLeft = left;
+      saveActive(a);
+    });
+    timers.walk.left = Math.max(0, active.timers.walkLeft ?? 600);
+    renderRightTimer('Walk', 'walk');
+    setModePill('-');
+    releaseWakeLock();
+
+    document.getElementById('btnBack').addEventListener('click', () => { active.phase = 'MOBILITY'; saveActive(active); boot(); });
+    document.getElementById('btnFinish').addEventListener('click', () => completeSession());
+  }
+
+  // -------------------------
+  // Breathing
+  // -------------------------
+  function renderBreathPicker(){
+    leftCard.innerHTML = `
+      <h2>Breathing (3-1-6-2)</h2>
+      <p class="small">Choose duration (wakelock stays on during the timer).</p>
+      <div class="row" style="margin-top:10px;">
+        <button class="btn primary" data-b="300">5 min</button>
+        <button class="btn primary" data-b="600">10 min</button>
+      </div>
+      <div class="hr"></div>
+      <div class="row">
+        <button id="btnBack" class="btn">Back</button>
+      </div>
+    `;
+    leftCard.querySelectorAll('button[data-b]').forEach(b => {
+      b.addEventListener('click', () => {
+        const sec = Number(b.getAttribute('data-b'));
+        const a = loadActive() || { day: todayKey(), mode:'RECOVERY', phase:'BREATHING', timers:{} };
+        a.phase = 'BREATHING';
+        a.timers = a.timers || {};
+        a.timers.breathLeft = sec;
+        a.timers.breathPhase = 'IN';
+        a.timers.breathPhaseLeft = 3;
+        saveActive(a);
+        boot();
+      });
+    });
+    document.getElementById('btnBack').addEventListener('click', () => boot());
+    renderRightNone();
+    // If you hit 60 training sessions, show the bell-up checkpoint once.
+    try{ maybeShowCheckpoint(); }catch{}
+
+    setModePill('-');
+  }
+
+  const breathSeq = [
+    { phase:'IN', sec:3, scale:1.20 },
+    { phase:'HOLD', sec:1, scale:1.20 },
+    { phase:'OUT', sec:6, scale:0.80 },
+    { phase:'HOLD', sec:2, scale:0.80 },
+  ];
+
+  function renderBreathing(active){
+    leftCard.innerHTML = `
+      <h2>Breathing (3-1-6-2)</h2>
+      <div class="breathBox">
+        <div class="ring">
+          <div class="ringInner" id="ringInner">
+            <div>
+              <div class="phase" id="phaseTxt">IN</div>
+              <div class="phaseSub" id="phaseSub">3s</div>
+            </div>
+          </div>
+        </div>
+        <div class="progress"><div id="prog"></div></div>
+        <div class="small" id="totalLeft">-</div>
+      </div>
+      <div class="hr"></div>
+      <div class="row">
+        <button id="btnBack" class="btn">Back</button>
+        <button id="btnFinish" class="btn danger">Finish session</button>
+      </div>
+    `;
+
+    const ringInner = document.getElementById('ringInner');
+    const phaseTxt = document.getElementById('phaseTxt');
+    const phaseSub = document.getElementById('phaseSub');
+    const prog = document.getElementById('prog');
+    const totalLeft = document.getElementById('totalLeft');
+
+    function setPhase(p){
+      phaseTxt.textContent = p.phase;
+      ringInner.style.transform = `scale(${p.scale})`;
+    }
+
+    // Initialize from active
+    const total = active.timers.breathTotal ?? (active.timers.breathTotal = (active.timers.breathLeft ?? 300));
+
+    function updateUI(){
+      const a = loadActive();
+      if(!a) return;
+      const left = a.timers.breathLeft;
+      const pct = total ? (1 - left/total) * 100 : 0;
+      prog.style.width = `${Math.max(0, Math.min(100, pct))}%`;
+      totalLeft.textContent = `${fmt(left)} left`;
+      phaseTxt.textContent = a.timers.breathPhase;
+      phaseSub.textContent = `${a.timers.breathPhaseLeft}s`;
+      const p = breathSeq.find(x => x.phase === a.timers.breathPhase && ((x.phase==='IN'||x.phase==='OUT') ? true : true)) || breathSeq[0];
+      ringInner.style.transform = `scale(${p.scale})`;
+    }
+
+    // Breathing timer is custom (phase-based)
+    if(timers.breathing) timers.breathing.pause();
+
+    timers.breathing = makeTimer(active.timers.breathLeft ?? 300, (left, totalIgnored) => {
+      const a = loadActive();
+      if(!a) return;
+      a.timers.breathLeft = left;
+      saveActive(a);
+      updateUI();
+    });
+    timers.breathing.left = Math.max(0, active.timers.breathLeft ?? 300);
+
+    // phase tick
+    let phaseTicker = null;
+    function stopPhaseTicker(){ if(phaseTicker) clearInterval(phaseTicker); phaseTicker=null; }
+
+    function startPhaseTicker(){
+      stopPhaseTicker();
+      phaseTicker = setInterval(() => {
+        const a = loadActive();
+        if(!a) return;
+        if(!timers.breathing.running) return;
+        a.timers.breathPhaseLeft = Math.max(0, (a.timers.breathPhaseLeft ?? 0) - 1);
+        if(a.timers.breathPhaseLeft <= 0){
+          // move to next phase
+          const idx = breathSeq.findIndex(x => x.phase === a.timers.breathPhase && x.sec === (a.timers.breathPhaseSec || x.sec));
+          const next = breathSeq[(idx+1) % breathSeq.length];
+          a.timers.breathPhase = next.phase;
+          a.timers.breathPhaseLeft = next.sec;
+          a.timers.breathPhaseSec = next.sec;
+          saveActive(a);
+          // optional: beep at phase change (kept on)
+          beep(1);
+        } else {
+          saveActive(a);
+        }
+        updateUI();
+      }, 1000);
+    }
+
+    // Right panel for breathing uses timers.breathing (start/pause/reset), but with wakelock
+    renderRightTimer('Breathing', 'breathing');
+    setModePill('-');
+
+    // Patch the right panel buttons to also control phaseTicker + wakelock
+    const startBtn = rightInner.querySelector('#btnStart');
+    const pauseBtn = rightInner.querySelector('#btnPause');
+    const resetBtn = rightInner.querySelector('#btnResetT');
+
+    startBtn.addEventListener('click', () => {
+      requestWakeLock();
+      const a = loadActive();
+      if(!a) return;
+      // if no phase init
+      if(!a.timers.breathPhase){ a.timers.breathPhase = 'IN'; a.timers.breathPhaseLeft = 3; }
+      saveActive(a);
+      startPhaseTicker();
+    }, { once:false });
+
+    pauseBtn.addEventListener('click', () => {
+      // pause already handled by renderRightTimer; also stop ticker
+      stopPhaseTicker();
+      releaseWakeLock();
+    }, { once:false });
+
+    resetBtn.addEventListener('click', () => {
+      const a = loadActive();
+      if(!a) return;
+      stopPhaseTicker();
+      a.timers.breathLeft = a.timers.breathTotal ?? (a.timers.breathTotal = (a.timers.breathLeft ?? 300));
+      a.timers.breathPhase = 'IN';
+      a.timers.breathPhaseLeft = 3;
+      a.timers.breathPhaseSec = 3;
+      saveActive(a);
+      timers.breathing.reset();
+      releaseWakeLock();
+      updateUI();
+    }, { once:false });
+
+    // bootstrap phase visuals
+    const a0 = loadActive();
+    if(a0 && !a0.timers.breathPhase){
+      a0.timers.breathPhase = 'IN';
+      a0.timers.breathPhaseLeft = 3;
+      a0.timers.breathPhaseSec = 3;
+      saveActive(a0);
+    }
+    updateUI();
+
+    document.getElementById('btnBack').addEventListener('click', () => {
+      stopPhaseTicker();
+      releaseWakeLock();
+      const a = loadActive();
+      if(a){ a.phase = 'MOBILITY'; saveActive(a); }
+      boot();
+    });
+    document.getElementById('btnFinish').addEventListener('click', () => {
+      stopPhaseTicker();
+      releaseWakeLock();
+      completeSession();
+    });
+
+    // ensure no wakelock until user starts
+    releaseWakeLock();
+  }
+
+  // -------------------------
+  // Persistence helpers for right timer (generic)
+  // -------------------------
+  function persistActive(){
+    // timers already persist via onTick, this is a no-op helper now
+  }
+
+  // -------------------------
+  // Session completion
+  // -------------------------
+  function completeSession(){
+    const a = loadActive();
+    // summary line for completion screen
+    let summaryLine = "Nice. A new gate tomorrow.";
+
+    if(a && (a.mode === 'FULL' || a.mode === 'MINI') && a.session && a.session.memNext){
+    }
+
+    // If today's session was not FULL/MINI training, break FULL streak
+    if(a && !(a.mode === 'FULL' || a.mode === 'MINI')){
+      const fs = loadFullStreak();
+      fs.n = 0;
+      saveFullStreak(fs);
+      summaryLine = "Recovery session complete.";
+    }
+
+    clearActive();
+    // keep day state locked until tomorrow OR user resets; this matches your idea
+    // (If you want unlock on finish, uncomment next line)
+    // localStorage.removeItem(LS_DAY_KEY);
+
+    // Stop timers and wakelock
+    Object.values(timers).forEach(t => { try{ t && t.pause && t.pause(); }catch{} });
+    releaseWakeLock();
+
+    confettiBurst();
+    btnMain.textContent = 'Open session';
+    btnMain.classList.add('primary');
+    setModePill("-");
+
+    if(a){
+      const fs = loadFullStreak();
+      if(a.mode === 'FULL'){
+        fs.n = (fs.n || 0) + 1;
+      } else {
+        fs.n = 0;
+      }
+      saveFullStreak(fs);
+    }
+    // Show summary screen
+    leftCard.innerHTML = `
+      <h2>Session complete ✓</h2>
+      <p class="small">${summaryLine}</p>
+      <div class="hr"></div>
+      <button id="btnHome" class="btn primary">Back to start</button>
+    `;
+    document.getElementById('btnHome').addEventListener('click', () => {
+      // allow new start same day only if you reset; otherwise show locked state
+      boot();
+    });
+    renderRightNone();
+    // If you hit 60 training sessions, show the bell-up checkpoint once.
+    try{ maybeShowCheckpoint(); }catch{}
+
+  }
+
+  // -------------------------
+  // Boot / Router
+  // -------------------------
+  function boot(){
+    updateTrainPill();
+    updateKettlebellOnlyPill();
+    initTrainPillEditor();
+    bindStartLongPress();
+    
+    const day = loadDayState();
+    const active = loadActive();
+
+    if(active){
+      btnMain.textContent = 'Open session';
+      // route by phase
+      if(active.phase === 'TRAINING') return renderTraining(active);
+      if(active.phase === 'MOBILITY')  return renderMobility(active);
+      if(active.phase === 'WALK')      return renderWalk(active);
+      if(active.phase === 'BREATHING') return renderBreathing(active);
+    }
+
+    // if day gate is filled but no active session (user decided not to train)
+    if(day && day.modeLocked){
+      btnMain.textContent = 'Open session';
+      leftCard.innerHTML = `
+        <h2>Gate completed (${day.total}/15)</h2>
+        <p class="small">You have already set today's gate. You can open your session or reset today.</p>
+        <div class="hr"></div>
+        <div class="row">
+          <button id="btnStartFromLock" class="btn primary">Open session</button>
+          <button id="btnResetDay" class="btn danger">Reset today</button>
+        </div>
+      `;
+      renderRightNone();
+    // If you hit 60 training sessions, show the bell-up checkpoint once.
+    try{ maybeShowCheckpoint(); }catch{}
+
+      setModePill(day.modeLocked);
+
+      document.getElementById('btnStartFromLock').addEventListener('click', () => {
+        // create active based on locked mode
+        const mode = day.modeLocked;
+        if(mode === 'FULL' || mode === 'MINI'){
+          const s = generateSession(mode);
+          // save memory and count immediately on generation
+          saveMemory(s.memNext);
+          const tc = loadTrainCount();
+          tc.n = (tc.n || 0) + 1;
+          saveTrainCount(tc);
+          updateTrainPill();
+          const practiceMode = getPracticeMode();
+          const trainingStyle = getTrainingStyle();
+          const sessionNumber = (tc.n || 1);
+          saveActive({ day: todayKey(), mode, phase:'TRAINING', session:s, practiceMode, trainingStyle, sessionNumber, timers:{
+            circuitLeft: getCircuitSeconds(mode, practiceMode, sessionNumber),
+            carryLeft: DUR.carrySec,
+          }});
+        } else {
+          saveActive({ day: todayKey(), mode, phase:'MOBILITY', timers:{ mobilityLeft: DUR.mobilitySec }, mobilityChecks: {} });
+        }
+        boot();
+      });
+
+      document.getElementById('btnResetDay').addEventListener('click', () => {
+        localStorage.removeItem(LS_DAY_KEY);
+        clearActive();
+        boot();
+      });
+      return;
+    }
+
+    // default: gate
+    btnMain.textContent = 'Open session';
+    renderGate(null);
+  }
+
+  function openPracticeModeSelector(){
+    const current = getPracticeMode();
+    const kbOnly = getKettlebellOnly();
+    const trainingStyle = getTrainingStyle();
+    openModal({
+      title: "Session settings",
+      text: "Choose your timer progression and training style. Hybrid is the current default with one hypertrophy focus lift.",
+      actionsHTML: `
+        <button id="btnModeZen" class="btn primary"${current === "zen" ? ' disabled' : ''}>Zen</button>
+        <button id="btnModeProgression" class="btn good"${current === "progression" ? ' disabled' : ''}>Progression</button>
+        <button id="btnStyleStrength" class="btn ${trainingStyle === 'strength' ? 'primary' : ''}"${trainingStyle === "strength" ? ' disabled' : ''}>Strength</button>
+        <button id="btnStyleHybrid" class="btn ${trainingStyle === 'hybrid' ? 'primary' : ''}"${trainingStyle === "hybrid" ? ' disabled' : ''}>Hybrid</button>
+        <button id="btnStyleHypertrophy" class="btn ${trainingStyle === 'hypertrophy' ? 'primary' : ''}"${trainingStyle === "hypertrophy" ? ' disabled' : ''}>Hypertrophy</button>
+        <button id="btnKbOnly" class="btn ${kbOnly ? 'good' : ''}">KB Only: ${kbOnly ? 'On' : 'Off'}</button>
+        <button id="btnModeCancel" class="btn">Close</button>
+      `
+    });
+
+    document.getElementById("btnModeZen").addEventListener("click", () => {
+      savePracticeMode("zen");
+      closeModal();
+      boot();
+    });
+
+    document.getElementById("btnModeProgression").addEventListener("click", () => {
+      savePracticeMode("progression");
+      closeModal();
+      boot();
+    });
+
+    document.getElementById("btnStyleStrength").addEventListener("click", () => {
+      saveTrainingStyle("strength");
+      closeModal();
+      boot();
+    });
+
+    document.getElementById("btnStyleHybrid").addEventListener("click", () => {
+      saveTrainingStyle("hybrid");
+      closeModal();
+      boot();
+    });
+
+    document.getElementById("btnStyleHypertrophy").addEventListener("click", () => {
+      saveTrainingStyle("hypertrophy");
+      closeModal();
+      boot();
+    });
+
+    document.getElementById("btnKbOnly").addEventListener("click", () => {
+      saveKettlebellOnly(!getKettlebellOnly());
+      closeModal();
+      boot();
+    });
+
+    document.getElementById("btnModeCancel").addEventListener("click", () => closeModal());
+  }
+
+  let suppressStartClickUntil = 0;
+
+  function bindStartLongPress(){
+    if(btnMain.dataset.longpressBound === "1") return;
+    btnMain.dataset.longpressBound = "1";
+
+    let pressTimer = null;
+    let pointerIsDown = false;
+
+    const clearPress = () => {
+      if(pressTimer){
+        clearTimeout(pressTimer);
+        pressTimer = null;
+      }
+    };
+
+    const startPress = (e) => {
+      clearPress();
+      pointerIsDown = true;
+      pressTimer = setTimeout(() => {
+        if(!pointerIsDown) return;
+        suppressStartClickUntil = Date.now() + 1200;
+        try{ e && e.preventDefault && e.preventDefault(); }catch{}
+        openPracticeModeSelector();
+      }, 700);
+    };
+
+    const endPress = (e) => {
+      pointerIsDown = false;
+      clearPress();
+      if(Date.now() < suppressStartClickUntil && e){
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
+
+    if(window.PointerEvent){
+      btnMain.addEventListener("pointerdown", startPress);
+      btnMain.addEventListener("pointerup", endPress);
+      btnMain.addEventListener("pointercancel", endPress);
+      // Do not cancel on tiny pointer drift; that made long-press unreliable.
+    } else {
+      btnMain.addEventListener("touchstart", startPress, { passive: false });
+      btnMain.addEventListener("touchend", endPress);
+      btnMain.addEventListener("touchcancel", endPress);
+      btnMain.addEventListener("mousedown", startPress);
+      btnMain.addEventListener("mouseup", endPress);
+      // Do not cancel on mouseleave for the same reason.
+    }
+
+    btnMain.addEventListener("contextmenu", (e) => e.preventDefault());
+  }
+
+  // -------------------------
+  // Main button
+  // -------------------------
+  btnMain.addEventListener('click', (e) => {
+    if(Date.now() < suppressStartClickUntil){
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    if(appModal && appModal.classList.contains("show")) return;
+    const active = loadActive();
+    const day = loadDayState();
+    if(active){
+      boot();
+      return;
+    }
+    if(day && day.modeLocked){
+      boot();
+      return;
+    }
+    renderGate(null);
+  });
+
+  // Reset button (confirm)
+  btnReset.addEventListener('click', () => {
+    openModal({
+      title: "Program reset",
+      text: "This clears selection memory, the active session, today's gate, training style, KB Only, hypertrophy rotation, and your Practice counter.",
+      bodyHTML: "",
+      actionsHTML: `
+        <button id="btnDoReset" class="btn danger">Reset</button>
+        <button id="btnCancelReset" class="btn">Cancel</button>
+      `
+    });
+
+    document.getElementById("btnCancelReset").addEventListener("click", () => closeModal());
+
+    // 2-tap safety
+    const btn = document.getElementById("btnDoReset");
+    let armed = false;
+    btn.textContent = "Tap again to confirm";
+    btn.classList.remove("danger");
+    btn.classList.add("mid");
+
+    btn.addEventListener("click", () => {
+      if(!armed){
+        armed = true;
+        btn.textContent = "Confirm reset";
+        btn.classList.remove("mid");
+        btn.classList.add("danger");
+        return;
+      }
+      localStorage.removeItem(LS_MEM_KEY);
+      localStorage.removeItem(LS_ACTIVE_KEY);
+      localStorage.removeItem(LS_DAY_KEY);
+      localStorage.removeItem(LS_TRAIN_COUNT_KEY);
+      localStorage.removeItem(LS_FULL_STREAK_KEY);
+      localStorage.removeItem(LS_TRAINING_STYLE_KEY);
+      localStorage.removeItem(LS_KB_ONLY_KEY);
+      localStorage.removeItem(LS_HYPERTROPHY_QUEUE_KEY);
+      localStorage.removeItem("dtt_pull_mode_v1");
+      Object.values(timers).forEach(t => { try{ t && t.pause && t.pause(); }catch{} });
+      releaseWakeLock();
+      closeModal();
+      boot();
+    });
+  });
+
+  // Visibility: re-request wakelock only if a wakelock-eligible timer is running
+  document.addEventListener('visibilitychange', () => {
+    if(document.visibilityState !== 'visible') return;
+    // Only if circuit/carry/breathing running
+    const eligibleRunning = (timers.circuit && timers.circuit.running) || (timers.carry && timers.carry.running) || (timers.breathing && timers.breathing.running);
+    if(eligibleRunning) requestWakeLock();
+  });
+
+  // First boot
+  setWakeStatus(false);
+  renderRightNone();
+    // If you hit 60 training sessions, show the bell-up checkpoint once.
+    try{ maybeShowCheckpoint(); }catch{}
+
+  boot();
+})();
+</script>
+<script>
+if("serviceWorker" in navigator){
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./service-worker.js").catch(() => {});
+  });
+}
+</script>
+</body>
+</html>

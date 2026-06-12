@@ -1,0 +1,33 @@
+{
+  "id": "./",
+  "name": "Chop Wood & Carry Water",
+  "short_name": "Chop Wood",
+  "description": "A 60-session strength, mobility and practice companion.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#172019",
+  "theme_color": "#172019",
+  "categories": ["fitness", "health", "lifestyle"],
+  "icons": [
+    {
+      "src": "assets/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
