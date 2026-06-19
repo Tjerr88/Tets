@@ -33,7 +33,7 @@
       margin:0; padding:18px;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       background:
-        linear-gradient(180deg, rgba(12,18,13,0.34), rgba(12,18,13,0.78)),
+        linear-gradient(180deg, rgba(12,18,13,0.10), rgba(12,18,13,0.62)),
         url("scene-temple.jpg") center top / cover fixed,
         #172019;
       color:var(--text);
@@ -42,7 +42,7 @@
     .wrap{ max-width:1060px; margin:0 auto; display:grid; gap:14px; }
     .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
     .card{
-      background: rgba(247,239,224,0.93);
+      background: rgba(247,239,224,0.90);
       border:1px solid var(--line);
       border-radius:8px;
       padding:16px;
@@ -52,13 +52,13 @@
     .masthead{
       position:relative;
       overflow:hidden;
-      min-height:255px;
+      min-height:clamp(340px, 44vw, 480px);
       display:grid;
       align-items:end;
       border-color: rgba(231,183,91,0.54);
       background:
-        linear-gradient(90deg, rgba(12,18,13,0.82), rgba(12,18,13,0.40) 52%, rgba(12,18,13,0.18)),
-        linear-gradient(180deg, rgba(0,0,0,0.04), rgba(0,0,0,0.42)),
+        linear-gradient(90deg, rgba(12,18,13,0.68), rgba(12,18,13,0.26) 52%, rgba(12,18,13,0.04)),
+        linear-gradient(180deg, rgba(0,0,0,0.00), rgba(0,0,0,0.28)),
         url("scene-carry.jpg") center center / cover;
       color:#f7efe0;
     }
@@ -89,7 +89,7 @@
       padding:14px;
       border:1px solid rgba(231,183,91,0.26);
       border-radius:8px;
-      background: rgba(17,25,19,0.58);
+      background: rgba(17,25,19,0.44);
       backdrop-filter: blur(6px);
     }
     .brand-logo{
@@ -395,7 +395,7 @@
   const LS_LESSON_DAY_KEY = "cw_lesson_day_v1";
   const LS_LESSON_TODAY_KEY = "cw_lesson_today_v1";
 
-  const DUR = { carrySec: 5*60, mobilitySec: 25*60 };
+  const DUR = { carrySec: 5*60, zone2Sec: 20*60, mobilitySec: 25*60 };
 
   const EVERYTHING_ELSE_NORMAL = [
     "Leg Raise",
@@ -1205,6 +1205,7 @@
   const timers = {
     circuit: null,
     carry: null,
+    zone2: null,
     mobility: null,
     walk: null,
     breathing: null,
@@ -1261,8 +1262,10 @@
       t.start(() => {
         beep(1);
         // Auto-chaining:
-        if(timerId === 'circuit' && typeof startCarry === 'function'){
-          startCarry(true);
+        if(timerId === 'circuit'){
+          const active = loadActive();
+          if(active && active.mode === 'MINI' && typeof startZone2 === 'function') startZone2(true);
+          else if(typeof startCarry === 'function') startCarry(true);
         }
       });
       persistActive();
@@ -1428,7 +1431,8 @@ function computeBand(total){
           const sessionNumber = (tc.n || 1);
         saveActive({ day: todayKey(), mode, phase:'TRAINING', session:s, practiceMode, trainingStyle, sessionNumber, timers:{
           circuitLeft: getCircuitSeconds(mode, practiceMode, sessionNumber),
-          carryLeft: DUR.carrySec,
+          carryLeft: mode === 'FULL' ? DUR.carrySec : undefined,
+          zone2Left: mode === 'MINI' ? DUR.zone2Sec : undefined,
         }});
       } else {
         saveActive({ day: todayKey(), mode, phase:'MOBILITY', timers:{ mobilityLeft: DUR.mobilitySec }, mobilityChecks: {} });
@@ -1465,6 +1469,32 @@ function computeBand(total){
     timers.carry.left = Math.max(0, a.timers.carryLeft ?? DUR.carrySec);
 
     renderRightTimer('Loaded Carry (05:00)', 'carry');
+    if(autoStart){
+      const startBtn = rightInner.querySelector('#btnStart');
+      if(startBtn) startBtn.click();
+    }
+  }
+
+  // -------------------------
+  // Zone 2 timer
+  // -------------------------
+  function startZone2(autoStart=false){
+    const a = loadActive();
+    if(!a) return;
+    a.timers = a.timers || {};
+    if(typeof a.timers.zone2Left !== 'number') a.timers.zone2Left = DUR.zone2Sec;
+    saveActive(a);
+
+    timers.zone2 = makeTimer(DUR.zone2Sec, (left,total) => {
+      const active = loadActive();
+      if(!active) return;
+      active.timers = active.timers || {};
+      active.timers.zone2Left = left;
+      saveActive(active);
+    });
+    timers.zone2.left = Math.max(0, a.timers.zone2Left ?? DUR.zone2Sec);
+
+    renderRightTimer('Zone 2 (20:00)', 'zone2');
     if(autoStart){
       const startBtn = rightInner.querySelector('#btnStart');
       if(startBtn) startBtn.click();
@@ -1525,6 +1555,16 @@ function computeBand(total){
         <div class="pill">Optional</div>
       </div>` : ``}
 
+      ${mode === 'MINI' ? `
+      <div class="hr"></div>
+      <h3 class="sectionTitle">Zone 2</h3>
+      <div class="exercise carryCard" style="align-items:center;">
+        <div class="ex-left">
+          <div class="ex-title">Zone 2</div>
+          <div class="ex-meta">20:00 easy aerobic work - nasal breathing pace.</div>
+        </div>
+        <div class="pill">20 min</div>
+      </div>` : `
       <div class="hr"></div>
       <h3 class="sectionTitle">Loaded Carry</h3>
       <div class="exercise carryCard" style="align-items:center;">
@@ -1533,11 +1573,13 @@ function computeBand(total){
           <div class="ex-meta">05:00 easy - switch sides when needed</div>
         </div>
         <div class="pill">5 min</div>
-      </div>
+      </div>`}
 
       <div class="hr"></div>
       <div class="row">
-        <button id="btnCarryTimer" class="btn good">Carry timer</button>
+        ${mode === 'MINI'
+          ? `<button id="btnZone2Timer" class="btn good">Zone 2 timer</button>`
+          : `<button id="btnCarryTimer" class="btn good">Carry timer</button>`}
         <button id="btnFinish" class="btn danger">Finish session</button>
       </div>
     `;
@@ -1575,9 +1617,10 @@ function computeBand(total){
     document.getElementById('btnFinish').addEventListener('click', () => {
       completeSession();
     });
-    document.getElementById('btnCarryTimer').addEventListener('click', () => {
-      startCarry(false);
-    });
+    const carryBtn = document.getElementById('btnCarryTimer');
+    if(carryBtn) carryBtn.addEventListener('click', () => startCarry(false));
+    const zone2Btn = document.getElementById('btnZone2Timer');
+    if(zone2Btn) zone2Btn.addEventListener('click', () => startZone2(false));
 
     releaseWakeLock();
   }
@@ -2031,7 +2074,8 @@ function computeBand(total){
           const sessionNumber = (tc.n || 1);
           saveActive({ day: todayKey(), mode, phase:'TRAINING', session:s, practiceMode, trainingStyle, sessionNumber, timers:{
             circuitLeft: getCircuitSeconds(mode, practiceMode, sessionNumber),
-            carryLeft: DUR.carrySec,
+            carryLeft: mode === 'FULL' ? DUR.carrySec : undefined,
+            zone2Left: mode === 'MINI' ? DUR.zone2Sec : undefined,
           }});
         } else {
           saveActive({ day: todayKey(), mode, phase:'MOBILITY', timers:{ mobilityLeft: DUR.mobilitySec }, mobilityChecks: {} });
