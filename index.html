@@ -101,6 +101,41 @@
       box-shadow:0 10px 28px rgba(0,0,0,0.28);
     }
     .brand-copy{ min-width:0; }
+    .hero-actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin-top:14px;
+    }
+    .btn.main-action{
+      min-height:52px;
+      padding:14px 20px;
+      border-radius:999px;
+      border-color: rgba(247,239,224,0.72);
+      background:
+        linear-gradient(135deg, rgba(184,74,47,0.96), rgba(184,138,55,0.92));
+      color:#fff8e8;
+      font-size:15px;
+      letter-spacing:.04em;
+      text-transform:uppercase;
+      box-shadow: 0 14px 34px rgba(5,10,6,0.38), inset 0 1px 0 rgba(255,255,255,0.24);
+    }
+    .btn.main-action:hover{
+      border-color: rgba(255,250,239,0.92);
+      filter:saturate(1.08);
+    }
+    .hero-actions #btnReset{
+      color:#f2dec0;
+      border-color: rgba(247,239,224,0.36);
+      background: rgba(17,25,19,0.38);
+    }
+    .hero-actions #trainPill{
+      color:#f2dec0;
+      border-color: rgba(247,239,224,0.30);
+      background: rgba(17,25,19,0.44);
+    }
+    .hero-actions #trainPill strong{ color:#fff8e8; }
     @media (max-width: 520px){
       .brand{
         gap:12px;
@@ -368,8 +403,8 @@
         <p class="small">Enter the gate. Do the work. Release the outcome.</p>
       </div>
     </div>
-    <div class="row" style="margin-top:10px;">
-      <button id="btnMain" class="btn primary">Open session</button>
+    <div class="hero-actions">
+      <button id="btnMain" class="btn main-action">Options</button>
       <button id="btnReset" class="btn" title="Clears selection memory and today's active status.">Reset</button>
       <span id="trainPill" class="pill">Practice: <strong>0 / 60</strong></span>
     </div>
@@ -1411,7 +1446,7 @@ function computeBand(total){
           <div id="band" class="badge">-</div>
         </div>
         <div class="row">
-          <button id="btnStartSession" class="btn primary" disabled>Open session</button>
+          <button id="btnStartSession" class="btn primary" disabled>Build Practice</button>
           <span class="small">(after filling all 3 scores)</span>
         </div>
       </div>
@@ -2052,8 +2087,8 @@ function computeBand(total){
     releaseWakeLock();
 
     confettiBurst();
-    btnMain.textContent = 'Open session';
-    btnMain.classList.add('primary');
+    btnMain.textContent = 'Options';
+    btnMain.classList.add('main-action');
     setModePill("-");
 
     if(a){
@@ -2089,13 +2124,12 @@ function computeBand(total){
     updateTrainPill();
     updateKettlebellOnlyPill();
     initTrainPillEditor();
-    bindStartLongPress();
     
     const day = loadDayState();
     const active = loadActive();
 
     if(active){
-      btnMain.textContent = 'Open session';
+      btnMain.textContent = 'Options';
       // route by phase
       if(active.phase === 'TRAINING') return renderTraining(active);
       if(active.phase === 'MOBILITY')  return renderMobility(active);
@@ -2105,13 +2139,13 @@ function computeBand(total){
 
     // if day gate is filled but no active session (user decided not to train)
     if(day && day.modeLocked){
-      btnMain.textContent = 'Open session';
+      btnMain.textContent = 'Options';
       leftCard.innerHTML = `
         <h2>Gate completed (${day.total}/15)</h2>
         <p class="small">You have already set today's gate. You can open your session or reset today.</p>
         <div class="hr"></div>
         <div class="row">
-          <button id="btnStartFromLock" class="btn primary">Open session</button>
+          <button id="btnStartFromLock" class="btn primary">Open Practice</button>
           <button id="btnResetDay" class="btn danger">Reset today</button>
         </div>
       `;
@@ -2151,7 +2185,7 @@ function computeBand(total){
     }
 
     // default: gate
-    btnMain.textContent = 'Open session';
+    btnMain.textContent = 'Options';
     renderGate(null);
   }
 
@@ -2217,80 +2251,12 @@ function computeBand(total){
     document.getElementById("btnModeCancel").addEventListener("click", () => closeModal());
   }
 
-  let suppressStartClickUntil = 0;
-
-  function bindStartLongPress(){
-    if(btnMain.dataset.longpressBound === "1") return;
-    btnMain.dataset.longpressBound = "1";
-
-    let pressTimer = null;
-    let pointerIsDown = false;
-
-    const clearPress = () => {
-      if(pressTimer){
-        clearTimeout(pressTimer);
-        pressTimer = null;
-      }
-    };
-
-    const startPress = (e) => {
-      clearPress();
-      pointerIsDown = true;
-      pressTimer = setTimeout(() => {
-        if(!pointerIsDown) return;
-        suppressStartClickUntil = Date.now() + 1200;
-        try{ e && e.preventDefault && e.preventDefault(); }catch{}
-        openPracticeModeSelector();
-      }, 700);
-    };
-
-    const endPress = (e) => {
-      pointerIsDown = false;
-      clearPress();
-      if(Date.now() < suppressStartClickUntil && e){
-        e.preventDefault();
-        e.stopPropagation();
-      }
-    };
-
-    if(window.PointerEvent){
-      btnMain.addEventListener("pointerdown", startPress);
-      btnMain.addEventListener("pointerup", endPress);
-      btnMain.addEventListener("pointercancel", endPress);
-      // Do not cancel on tiny pointer drift; that made long-press unreliable.
-    } else {
-      btnMain.addEventListener("touchstart", startPress, { passive: false });
-      btnMain.addEventListener("touchend", endPress);
-      btnMain.addEventListener("touchcancel", endPress);
-      btnMain.addEventListener("mousedown", startPress);
-      btnMain.addEventListener("mouseup", endPress);
-      // Do not cancel on mouseleave for the same reason.
-    }
-
-    btnMain.addEventListener("contextmenu", (e) => e.preventDefault());
-  }
-
   // -------------------------
   // Main button
   // -------------------------
   btnMain.addEventListener('click', (e) => {
-    if(Date.now() < suppressStartClickUntil){
-      e.preventDefault();
-      e.stopPropagation();
-      return;
-    }
     if(appModal && appModal.classList.contains("show")) return;
-    const active = loadActive();
-    const day = loadDayState();
-    if(active){
-      boot();
-      return;
-    }
-    if(day && day.modeLocked){
-      boot();
-      return;
-    }
-    renderGate(null);
+    openPracticeModeSelector();
   });
 
   // Reset button (confirm)
