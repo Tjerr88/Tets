@@ -392,6 +392,7 @@
   const LS_TRAINING_STYLE_KEY = "cw_training_style_v1";
   const LS_KB_ONLY_KEY = "cw_kb_only_v1";
   const LS_HYPERTROPHY_QUEUE_KEY = "cw_hypertrophy_queue_v1";
+  const LS_BELL_LEVEL_KEY = "cw_bell_level_v1";
   const LS_LESSON_DAY_KEY = "cw_lesson_day_v1";
   const LS_LESSON_TODAY_KEY = "cw_lesson_today_v1";
 
@@ -509,6 +510,13 @@
   function saveTrainingStyle(style){
     localStorage.setItem(LS_TRAINING_STYLE_KEY, ["strength","hybrid","hypertrophy"].includes(style) ? style : "hybrid");
   }
+  function getBellLevel(){
+    const n = Number(localStorage.getItem(LS_BELL_LEVEL_KEY));
+    return Number.isFinite(n) ? Math.max(0, Math.round(n)) : 0;
+  }
+  function saveBellLevel(n){
+    localStorage.setItem(LS_BELL_LEVEL_KEY, String(Math.max(0, Math.round(Number(n) || 0))));
+  }
   function getCircuitSeconds(mode, practiceMode, sessionNumber){
     if(mode === "MINI") return 20*60;
     if(practiceMode !== "progression") return 20*60;
@@ -525,6 +533,9 @@
     if(trainingStyle === "strength") return ballistic ? "5-10 reps" : "3-5 reps";
     if(trainingStyle === "hypertrophy") return ballistic ? "10-20 reps" : "6-12 reps";
     return `${ballistic ? 10 : 5} reps`;
+  }
+  function formatMiniPrescription(item, trainingStyle){
+    return `1 set - ${formatPrescription(item, trainingStyle)}`;
   }
   function formatHypertrophyFocusPrescription(trainingStyle){
     if(trainingStyle === "strength") return null;
@@ -669,111 +680,142 @@
     appModal.addEventListener("click", (e) => { if(e.target === appModal) closeModal(); });
   }
 
-  // --- Checkpoint: bell-up check (after 60 training sessions)
+  // --- Checkpoint: progression cycle check (after 60 completed sessions)
   function showCheckpointModal(){
-    const items = [
-      {k:"rpe", t:"Average RPE < 7 (last 2 weeks)"},
-      {k:"pain", t:"No aches or irritation"},
-      {k:"tech", t:"Technique feels crisp and stable"},
-      {k:"sleep", t:"Sleep and recovery are stable"},
-      {k:"miss", t:"No missed sessions in the last 2 weeks"},
-    ];
+    const style = getTrainingStyle();
+    const isHypertrophy = style === "hypertrophy";
+    const isStrength = style === "strength";
+    if(!isHypertrophy && !isStrength) return;
 
+    const bellLevel = getBellLevel();
+    const question = isHypertrophy
+      ? "Can you Military Press the next bell for 1-2 clean reps?"
+      : "Can you Military Press this bell for 6-12 clean reps?";
+    const yesText = isHypertrophy
+      ? "Yes - move up and start Strength"
+      : "Yes - start Hypertrophy";
+    const noText = isHypertrophy
+      ? "No - repeat Hypertrophy"
+      : "No - repeat Strength";
     const body = `
-      <div class="modalList">
-        ${items.map(i => `
-          <div class="modalItem">
-            <label>
-              <input type="checkbox" data-ck="${i.k}">
-              <span>${i.t}</span>
-            </label>
-          </div>
-        `).join("")}
-      </div>
-      <p class="modalText" style="margin-top:10px;">
-        Score <b>4-5</b>: you may move up one bell. Score <b>0-3</b>: stay with the same bell for now.
+      <p class="modalText">
+        ${isHypertrophy
+          ? "If yes, Chop Wood moves up one bell and runs a 60-session Strength cycle at the new weight."
+          : "If yes, stay on this bell and run a 60-session Hypertrophy cycle."}
       </p>
-      <p class="modalText" id="cpResult" style="margin-top:10px;"></p>
-    `;
-
-    const actions = `
-      <button id="btnCpScore" class="btn primary">Check score</button>
-      <button id="btnCpLater" class="btn">Later</button>
+      <p class="modalText" style="margin-top:10px;">Current bell step: <b>+${bellLevel}</b></p>
     `;
 
     openModal({
-      title: "Checkpoint (60 sessions)",
-      text: "You have completed 60 practice sessions. Time for a short check.",
+      title: "Progression Checkpoint",
+      text: question,
       bodyHTML: body,
-      actionsHTML: actions
+      actionsHTML: `
+        <button id="btnCpYes" class="btn good">${yesText}</button>
+        <button id="btnCpNo" class="btn primary">${noText}</button>
+        <button id="btnCpLater" class="btn">Later</button>
+      `
     });
 
     document.getElementById("btnCpLater").addEventListener("click", () => {
-      const tc = loadTrainCount();
-      tc.checkpointDone = true; // don't keep nudging
-      saveTrainCount(tc);
-      updateTrainPill();
       closeModal();
     });
 
-    document.getElementById("btnCpScore").addEventListener("click", () => {
-      const cks = Array.from(document.querySelectorAll('input[type="checkbox"][data-ck]'));
-      const score = cks.reduce((a,el)=>a + (el.checked?1:0), 0);
-      const res = document.getElementById("cpResult");
-      if(res) res.innerHTML = `Score: <b>${score} / 5</b>.`;
+    const resetCycle = () => {
+      saveTrainCount({ n: 0, checkpointDone: false });
+      saveFullStreak({ n: 0 });
+      updateTrainPill();
+    };
 
-      const makeResetActions = (canGoUp) => `
-        <button id="btnCpUp" class="btn good" ${canGoUp?"" :"disabled"}>Move up (reset counter)</button>
-        <button id="btnCpAgain" class="btn primary">Another 60 (reset counter)</button>
-        <button id="btnCpClose" class="btn">Close</button>
-      `;
-
-      if(modalActionsEl){
-        modalActionsEl.innerHTML = makeResetActions(score >= 4);
+    document.getElementById("btnCpYes").addEventListener("click", () => {
+      if(isHypertrophy){
+        saveBellLevel(bellLevel + 1);
+        saveTrainingStyle("strength");
+      } else {
+        saveTrainingStyle("hypertrophy");
       }
+      resetCycle();
+      closeModal();
+      boot();
+    });
 
-      const markDone = () => {
-        const tc = loadTrainCount();
-        tc.checkpointDone = true;
-        saveTrainCount(tc);
-        updateTrainPill();
-      };
-
-      const doReset = () => {
-        saveTrainCount({ n: 0, checkpointDone: true });
-        updateTrainPill();
-        // reset streak as well (fresh start)
-        saveFullStreak({ n: 0 });
-      };
-
-      const btnUp = document.getElementById("btnCpUp");
-      if(btnUp){
-        btnUp.addEventListener("click", () => {
-          if(score < 4) return;
-          doReset();
-          closeModal();
-          boot();
-        });
-      }
-
-      document.getElementById("btnCpAgain").addEventListener("click", () => {
-        doReset();
-        closeModal();
-        boot();
-      });
-
-      document.getElementById("btnCpClose").addEventListener("click", () => {
-        markDone();
-        closeModal();
-      });
+    document.getElementById("btnCpNo").addEventListener("click", () => {
+      resetCycle();
+      closeModal();
+      boot();
     });
   }
 
   function maybeShowCheckpoint(){
     const tc = loadTrainCount();
-    if((tc.n || 0) >= 60 && !tc.checkpointDone){
+    const progressionStyle = ["strength","hypertrophy"].includes(getTrainingStyle());
+    if(getPracticeMode() === "progression" && progressionStyle && (tc.n || 0) >= 60){
       showCheckpointModal();
     }
+  }
+
+  function resetProgressionCycle(){
+    savePracticeMode("progression");
+    saveTrainCount({ n: 0, checkpointDone: false });
+    saveFullStreak({ n: 0 });
+    updateTrainPill();
+  }
+
+  function openStartCalibration(){
+    openModal({
+      title: "Start Calibration",
+      text: "Test one clean-rep-max range for the Military Press with your current bell.",
+      bodyHTML: `
+        <p class="modalText">
+          Choose the range that matches your best clean set today. This sets the first Progression cycle.
+        </p>
+      `,
+      actionsHTML: `
+        <button id="btnCalHeavy" class="btn danger">&lt;3 reps</button>
+        <button id="btnCalStrength" class="btn primary">3-7 reps</button>
+        <button id="btnCalHypertrophy" class="btn good">8-12 reps</button>
+        <button id="btnCalLight" class="btn mid">&gt;12 reps</button>
+        <button id="btnCalClose" class="btn">Close</button>
+      `
+    });
+
+    const showAdvice = (text) => {
+      if(modalBodyEl){
+        modalBodyEl.innerHTML = `<p class="modalText">${text}</p>`;
+      }
+      if(modalActionsEl){
+        modalActionsEl.innerHTML = `
+          <button id="btnCalAgain" class="btn primary">Choose again</button>
+          <button id="btnCalDone" class="btn">Close</button>
+        `;
+        document.getElementById("btnCalAgain").addEventListener("click", () => openStartCalibration());
+        document.getElementById("btnCalDone").addEventListener("click", () => closeModal());
+      }
+    };
+
+    document.getElementById("btnCalHeavy").addEventListener("click", () => {
+      showAdvice("This bell is too heavy for the current progression. Pick a lighter bell, then run Start Calibration again.");
+    });
+
+    document.getElementById("btnCalStrength").addEventListener("click", () => {
+      resetProgressionCycle();
+      saveTrainingStyle("strength");
+      closeModal();
+      boot();
+    });
+
+    document.getElementById("btnCalHypertrophy").addEventListener("click", () => {
+      resetProgressionCycle();
+      saveTrainingStyle("hypertrophy");
+      closeModal();
+      boot();
+    });
+
+    document.getElementById("btnCalLight").addEventListener("click", () => {
+      showAdvice("This bell is too light for the current progression. Pick a heavier bell, then run Start Calibration again.");
+    });
+
+    document.getElementById("btnCalClose").addEventListener("click", () => closeModal());
   }
 
 
@@ -1551,7 +1593,9 @@ function computeBand(total){
       </details>
 
       <h3 class="sectionTitle">Main Training</h3>
-      <div class="small" style="margin-bottom:10px;">${trainingStyle[0].toUpperCase() + trainingStyle.slice(1)} - Circuit: ${fmt(circuitSeconds)} - repeat calmly with clean reps.</div>
+      <div class="small" style="margin-bottom:10px;">${mode === 'MINI'
+        ? `${trainingStyle[0].toUpperCase() + trainingStyle.slice(1)} - 1 set per exercise, then 20:00 Zone 2.`
+        : `${trainingStyle[0].toUpperCase() + trainingStyle.slice(1)} - Circuit: ${fmt(circuitSeconds)} - repeat calmly with clean reps.`}</div>
       <div id="sessionList" style="display:grid; gap:10px;"></div>
 
       ${mode === 'FULL' && session.optional ? `
@@ -1599,12 +1643,14 @@ function computeBand(total){
     session.circuit.forEach((item) => {
       const div = document.createElement('div');
       div.className = 'exercise';
+      const basePrescription = item.hypertrophy ? focusPrescription : formatPrescription(item, trainingStyle);
+      const prescription = mode === 'MINI' ? `1 set - ${basePrescription}` : basePrescription;
       div.innerHTML = `
         <div class="ex-left">
           <div class="ex-title">${item.exercise}</div>
           <div class="ex-meta">${item.patternLabel} • ${item.subcatLabel} • <b>${item.hypertrophy 
-      ? focusPrescription
-      : formatPrescription(item, trainingStyle)
+      ? prescription
+      : prescription
     }</b></div>
         </div>
         <div class="pill">${item.patternLabel}</div>
@@ -1612,16 +1658,19 @@ function computeBand(total){
       list.appendChild(div);
     });
 
-    timers.circuit = makeTimer(circuitSeconds, (left,total) => {
-      const a = loadActive();
-      if(!a) return;
-      a.timers = a.timers || {};
-      a.timers.circuitLeft = left;
-      saveActive(a);
-    });
-    timers.circuit.left = Math.max(0, active.timers?.circuitLeft ?? circuitSeconds);
-
-    renderRightTimer(`Circuit (${fmt(circuitSeconds)})`, 'circuit');
+    if(mode === 'MINI'){
+      startZone2(false);
+    } else {
+      timers.circuit = makeTimer(circuitSeconds, (left,total) => {
+        const a = loadActive();
+        if(!a) return;
+        a.timers = a.timers || {};
+        a.timers.circuitLeft = left;
+        saveActive(a);
+      });
+      timers.circuit.left = Math.max(0, active.timers?.circuitLeft ?? circuitSeconds);
+      renderRightTimer(`Circuit (${fmt(circuitSeconds)})`, 'circuit');
+    }
     setModePill(mode);
 
     document.getElementById('btnFinish').addEventListener('click', () => {
@@ -2112,7 +2161,7 @@ function computeBand(total){
     const trainingStyle = getTrainingStyle();
     openModal({
       title: "Session settings",
-      text: "Choose your timer progression and training style. Hybrid is the current default with one hypertrophy focus lift.",
+      text: "Choose timer progression and training style. In Progression, Strength and Hypertrophy alternate after 60-session Military Press checks; Hybrid only changes training time.",
       actionsHTML: `
         <button id="btnModeZen" class="btn primary"${current === "zen" ? ' disabled' : ''}>Zen</button>
         <button id="btnModeProgression" class="btn good"${current === "progression" ? ' disabled' : ''}>Progression</button>
@@ -2120,6 +2169,7 @@ function computeBand(total){
         <button id="btnStyleHybrid" class="btn ${trainingStyle === 'hybrid' ? 'primary' : ''}"${trainingStyle === "hybrid" ? ' disabled' : ''}>Hybrid</button>
         <button id="btnStyleHypertrophy" class="btn ${trainingStyle === 'hypertrophy' ? 'primary' : ''}"${trainingStyle === "hypertrophy" ? ' disabled' : ''}>Hypertrophy</button>
         <button id="btnKbOnly" class="btn ${kbOnly ? 'good' : ''}">KB Only: ${kbOnly ? 'On' : 'Off'}</button>
+        <button id="btnStartCalibration" class="btn mid">Start Calibration</button>
         <button id="btnModeCancel" class="btn">Close</button>
       `
     });
@@ -2158,6 +2208,10 @@ function computeBand(total){
       saveKettlebellOnly(!getKettlebellOnly());
       closeModal();
       boot();
+    });
+
+    document.getElementById("btnStartCalibration").addEventListener("click", () => {
+      openStartCalibration();
     });
 
     document.getElementById("btnModeCancel").addEventListener("click", () => closeModal());
@@ -2276,6 +2330,7 @@ function computeBand(total){
       localStorage.removeItem(LS_TRAINING_STYLE_KEY);
       localStorage.removeItem(LS_KB_ONLY_KEY);
       localStorage.removeItem(LS_HYPERTROPHY_QUEUE_KEY);
+      localStorage.removeItem(LS_BELL_LEVEL_KEY);
       localStorage.removeItem("dtt_pull_mode_v1");
       Object.values(timers).forEach(t => { try{ t && t.pause && t.pause(); }catch{} });
       releaseWakeLock();
