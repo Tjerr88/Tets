@@ -406,7 +406,7 @@
     <div class="hero-actions">
       <button id="btnMain" class="btn main-action">Options</button>
       <button id="btnReset" class="btn" title="Clears selection memory and today's active status.">Reset</button>
-      <span id="trainPill" class="pill">Practice: <strong>0 / 60</strong></span>
+      <span id="trainPill" class="pill">Practice: <strong>0</strong></span>
     </div>
   </div>
 
@@ -422,6 +422,7 @@
   const LS_ACTIVE_KEY = "dtt_active_v2";
   const LS_DAY_KEY = "dtt_day_v2";
   const LS_TRAIN_COUNT_KEY = "dtt_train_count_v1";
+  const LS_PROGRESS_COUNT_KEY = "cw_progression_full_count_v1";
   const LS_FULL_STREAK_KEY = "dtt_full_streak_v1";
   const LS_PRACTICE_MODE_KEY = "cw_practice_mode_v1";
   const LS_TRAINING_STYLE_KEY = "cw_training_style_v1";
@@ -617,6 +618,8 @@
   // --- Practice session counter
   function loadTrainCount(){ return loadJSON(LS_TRAIN_COUNT_KEY) || { n: 0, checkpointDone: false }; }
   function saveTrainCount(v){ saveJSON(LS_TRAIN_COUNT_KEY, v); }
+  function loadProgressCount(){ return loadJSON(LS_PROGRESS_COUNT_KEY) || { n: 0 }; }
+  function saveProgressCount(v){ saveJSON(LS_PROGRESS_COUNT_KEY, v); }
 
   function loadFullStreak(){ return loadJSON(LS_FULL_STREAK_KEY) || { n: 0 }; }
   function saveFullStreak(v){ saveJSON(LS_FULL_STREAK_KEY, v); }
@@ -624,12 +627,17 @@
   function updateTrainPill(){
     const tc = loadTrainCount();
     const n = tc.n || 0;
+    const pc = loadProgressCount();
+    const pn = pc.n || 0;
     const el = document.getElementById("trainPill");
     if(!el) return;
-    let suffix = "";
-    if(n === 30) suffix = " - Halfway";
-    if(n >= 60) suffix = " - Checkpoint";
-    el.innerHTML = `Practice: <strong>${n} / 60</strong>${suffix}`;
+    const progressionStyle = ["strength","hypertrophy"].includes(getTrainingStyle());
+    if(getPracticeMode() === "progression" && progressionStyle){
+      const suffix = pn >= 60 ? " - Checkpoint" : "";
+      el.innerHTML = `Practice: <strong>${n}</strong> | Progression: <strong>${pn} / 60</strong>${suffix}`;
+    } else {
+      el.innerHTML = `Practice: <strong>${n}</strong>`;
+    }
   }
 
   function initTrainPillEditor(){
@@ -724,19 +732,13 @@
 
     const bellLevel = getBellLevel();
     const question = isHypertrophy
-      ? "Can you Military Press the next bell for 1-2 clean reps?"
+      ? "Test the Military Press with the next bell. What clean rep range do you own?"
       : "Can you Military Press this bell for 6-12 clean reps?";
-    const yesText = isHypertrophy
-      ? "Yes - move up and start Strength"
-      : "Yes - start Hypertrophy";
-    const noText = isHypertrophy
-      ? "No - repeat Hypertrophy"
-      : "No - repeat Strength";
     const body = `
       <p class="modalText">
         ${isHypertrophy
-          ? "If yes, Chop Wood moves up one bell and runs a 60-session Strength cycle at the new weight."
-          : "If yes, stay on this bell and run a 60-session Hypertrophy cycle."}
+          ? "After 60 FULL Hypertrophy sessions, this decides whether the next bell begins with Strength, Hypertrophy, or another Hypertrophy block at the current bell."
+          : "After 60 FULL Strength sessions, if yes, stay on this bell and run a 60-FULL-session Hypertrophy cycle."}
       </p>
       <p class="modalText" style="margin-top:10px;">Current bell step: <b>+${bellLevel}</b></p>
     `;
@@ -745,9 +747,14 @@
       title: "Progression Checkpoint",
       text: question,
       bodyHTML: body,
-      actionsHTML: `
-        <button id="btnCpYes" class="btn good">${yesText}</button>
-        <button id="btnCpNo" class="btn primary">${noText}</button>
+      actionsHTML: isHypertrophy ? `
+        <button id="btnCpRepeat" class="btn primary">&lt;3 reps - repeat Hypertrophy</button>
+        <button id="btnCpStrength" class="btn good">3-5 reps - +1 bell Strength</button>
+        <button id="btnCpHypertrophy" class="btn mid">6-12 reps - +1 bell Hypertrophy</button>
+        <button id="btnCpLater" class="btn">Later</button>
+      ` : `
+        <button id="btnCpYes" class="btn good">Yes - start Hypertrophy</button>
+        <button id="btnCpNo" class="btn primary">No - repeat Strength</button>
         <button id="btnCpLater" class="btn">Later</button>
       `
     });
@@ -757,41 +764,60 @@
     });
 
     const resetCycle = () => {
-      saveTrainCount({ n: 0, checkpointDone: false });
+      saveProgressCount({ n: 0 });
       saveFullStreak({ n: 0 });
       updateTrainPill();
     };
 
-    document.getElementById("btnCpYes").addEventListener("click", () => {
-      if(isHypertrophy){
+    if(isHypertrophy){
+      document.getElementById("btnCpRepeat").addEventListener("click", () => {
+        resetCycle();
+        closeModal();
+        boot();
+      });
+
+      document.getElementById("btnCpStrength").addEventListener("click", () => {
         saveBellLevel(bellLevel + 1);
         saveTrainingStyle("strength");
-      } else {
-        saveTrainingStyle("hypertrophy");
-      }
-      resetCycle();
-      closeModal();
-      boot();
-    });
+        resetCycle();
+        closeModal();
+        boot();
+      });
 
-    document.getElementById("btnCpNo").addEventListener("click", () => {
-      resetCycle();
-      closeModal();
-      boot();
-    });
+      document.getElementById("btnCpHypertrophy").addEventListener("click", () => {
+        saveBellLevel(bellLevel + 1);
+        saveTrainingStyle("hypertrophy");
+        resetCycle();
+        closeModal();
+        boot();
+      });
+    } else {
+      document.getElementById("btnCpYes").addEventListener("click", () => {
+        saveTrainingStyle("hypertrophy");
+        resetCycle();
+        closeModal();
+        boot();
+      });
+
+      document.getElementById("btnCpNo").addEventListener("click", () => {
+        resetCycle();
+        closeModal();
+        boot();
+      });
+    }
   }
 
   function maybeShowCheckpoint(){
-    const tc = loadTrainCount();
+    const pc = loadProgressCount();
     const progressionStyle = ["strength","hypertrophy"].includes(getTrainingStyle());
-    if(getPracticeMode() === "progression" && progressionStyle && (tc.n || 0) >= 60){
+    if(getPracticeMode() === "progression" && progressionStyle && (pc.n || 0) >= 60){
       showCheckpointModal();
     }
   }
 
   function resetProgressionCycle(){
     savePracticeMode("progression");
-    saveTrainCount({ n: 0, checkpointDone: false });
+    saveProgressCount({ n: 0 });
     saveFullStreak({ n: 0 });
     updateTrainPill();
   }
@@ -1418,6 +1444,16 @@ function computeBand(total){
     const current = tc.n || 0;
     tc.n = Math.max(current, Number(sessionNumber) || current);
     saveTrainCount(tc);
+    updateTrainPill();
+  }
+
+  function countCompletedProgressionFullSession(active){
+    if(!active || active.mode !== "FULL") return;
+    if(active.practiceMode !== "progression") return;
+    if(!["strength","hypertrophy"].includes(active.trainingStyle)) return;
+    const pc = loadProgressCount();
+    pc.n = (pc.n || 0) + 1;
+    saveProgressCount(pc);
     updateTrainPill();
   }
 
@@ -2067,6 +2103,7 @@ function computeBand(total){
 
     if(a && typeof a.sessionNumber === 'number'){
       countCompletedPracticeSession(a.sessionNumber);
+      countCompletedProgressionFullSession(a);
     }
 
     // If today's session was not FULL/MINI training, break FULL streak
@@ -2292,6 +2329,7 @@ function computeBand(total){
       localStorage.removeItem(LS_ACTIVE_KEY);
       localStorage.removeItem(LS_DAY_KEY);
       localStorage.removeItem(LS_TRAIN_COUNT_KEY);
+      localStorage.removeItem(LS_PROGRESS_COUNT_KEY);
       localStorage.removeItem(LS_FULL_STREAK_KEY);
       localStorage.removeItem(LS_TRAINING_STYLE_KEY);
       localStorage.removeItem(LS_KB_ONLY_KEY);
