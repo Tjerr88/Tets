@@ -235,6 +235,45 @@
     .ex-left{ display:grid; gap:6px; }
     .ex-title{ font-weight:820; font-size:15px; line-height:1.2; }
     .ex-meta{ color:var(--muted); font-size:12px; line-height:1.35; }
+    .exercise-media{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex:0 0 auto;
+    }
+    .exercise-thumb-btn{
+      width:58px;
+      height:58px;
+      border:1px solid rgba(32,40,34,0.12);
+      border-radius:12px;
+      padding:0;
+      overflow:hidden;
+      background:rgba(255,250,239,0.54);
+      cursor:pointer;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.26);
+    }
+    .exercise-thumb{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+      opacity:.88;
+      filter:saturate(.86) contrast(.96);
+    }
+    .exercise-thumb-btn:active{ transform:translateY(1px); }
+    .exercise-preview{
+      width:min(100%, 520px);
+      margin-top:12px;
+      border:1px solid var(--line);
+      border-radius:10px;
+      overflow:hidden;
+      background:var(--surface2);
+    }
+    .exercise-preview img{
+      display:block;
+      width:100%;
+      height:auto;
+    }
     .warmup{
       border:1px solid var(--line);
       background:
@@ -552,6 +591,71 @@
   }
   function saveBellLevel(n){
     localStorage.setItem(LS_BELL_LEVEL_KEY, String(Math.max(0, Math.round(Number(n) || 0))));
+  }
+  const EXERCISE_IMAGE_SLUGS = new Set([
+    "wide-row",
+    "small-row",
+    "gorilla-row",
+    "false-grip-pull-up",
+    "pull-up",
+    "chin-up",
+    "top-down-press",
+    "half-kneeling-press",
+    "military-press",
+    "get-up-sit-up",
+    "push-up",
+    "bridge-floor-press",
+    "high-pull",
+    "double-clean",
+    "snatch",
+    "viking-push-press",
+    "push-jerk",
+    "double-push-press",
+    "hand-to-hand-swing",
+    "two-arm-swing",
+    "one-arm-swing",
+    "single-leg-hip-thrust",
+    "b-stance-hip-thrust",
+    "hip-thrust",
+    "double-sumo-deadlift",
+    "b-stance-deadlift",
+    "single-leg-deadlift",
+    "box-pistol",
+    "skater-squat",
+    "step-up",
+    "bulgarian-split-squat",
+    "side-lunge-cossack",
+    "reverse-lunge",
+    "hack-squat",
+    "goblet-squat",
+    "double-front-squat",
+    "front-rack-march",
+    "cook-drill-march",
+    "overhead-carry",
+    "suitcase-carry",
+    "front-rack-carry"
+  ]);
+  function exerciseSlug(name){
+    return String(name || "")
+      .toLowerCase()
+      .replace(/&/g, " and ")
+      .replace(/\//g, " ")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  }
+  function exerciseImageSrc(name){
+    const slug = exerciseSlug(name);
+    return EXERCISE_IMAGE_SLUGS.has(slug) ? `ex-${slug}.webp` : null;
+  }
+  function openExercisePreview(name, src){
+    if(!src) return;
+    openModal({
+      title: name,
+      text: "End position visual reminder.",
+      bodyHTML: `<div class="exercise-preview"><img src="${src}" alt="${name} end position"></div>`,
+      actionsHTML: `<button id="btnExercisePreviewClose" class="btn primary">Close</button>`
+    });
+    document.getElementById("btnExercisePreviewClose").addEventListener("click", () => closeModal());
   }
   function getCircuitSeconds(mode, practiceMode, sessionNumber){
     if(mode === "MINI") return 20*60;
@@ -1636,6 +1740,7 @@ function computeBand(total){
     const sessionNumber = active.sessionNumber || (loadTrainCount().n || 1);
     const circuitSeconds = getCircuitSeconds(mode, practiceMode, sessionNumber);
     const focusPrescription = formatHypertrophyFocusPrescription(trainingStyle);
+    const carryImageSrc = session && session.carry ? exerciseImageSrc(session.carry) : null;
 
     leftCard.innerHTML = `
       <h2>Today</h2>
@@ -1697,7 +1802,10 @@ function computeBand(total){
           <div class="ex-title">${session.carry}</div>
           <div class="ex-meta">05:00 easy - switch sides when needed</div>
         </div>
-        <div class="pill">5 min</div>
+        <div class="exercise-media">
+          ${carryImageSrc ? `<button class="exercise-thumb-btn" type="button" data-ex-img="${carryImageSrc}" data-ex-name="${session.carry}" aria-label="Show ${session.carry} image"><img class="exercise-thumb" src="${carryImageSrc}" alt="${session.carry} visual reminder" loading="lazy"></button>` : ``}
+          <div class="pill">5 min</div>
+        </div>
       </div>`}
 
       <div class="hr"></div>
@@ -1714,6 +1822,7 @@ function computeBand(total){
     session.circuit.forEach((item) => {
       const div = document.createElement('div');
       div.className = 'exercise';
+      const imageSrc = exerciseImageSrc(item.exercise);
       const basePrescription = item.hypertrophy ? focusPrescription : formatPrescription(item, trainingStyle);
       const prescription = mode === 'MINI' ? `1 set - ${basePrescription}` : basePrescription;
       div.innerHTML = `
@@ -1724,9 +1833,19 @@ function computeBand(total){
       : prescription
     }</b></div>
         </div>
-        <div class="pill">${item.patternLabel}</div>
+        <div class="exercise-media">
+          ${imageSrc ? `<button class="exercise-thumb-btn" type="button" data-ex-img="${imageSrc}" data-ex-name="${item.exercise}" aria-label="Show ${item.exercise} image"><img class="exercise-thumb" src="${imageSrc}" alt="${item.exercise} end position" loading="lazy"></button>` : ``}
+          <div class="pill">${item.patternLabel}</div>
+        </div>
       `;
       list.appendChild(div);
+    });
+
+    leftCard.querySelectorAll('.exercise-thumb-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openExercisePreview(btn.dataset.exName, btn.dataset.exImg);
+      });
     });
 
     if(mode === 'MINI'){
