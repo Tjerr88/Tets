@@ -468,8 +468,8 @@
   const LS_KB_ONLY_KEY = "cw_kb_only_v1";
   const LS_HYPERTROPHY_QUEUE_KEY = "cw_hypertrophy_queue_v1";
   const LS_BELL_LEVEL_KEY = "cw_bell_level_v1";
-  const LS_LESSON_DAY_KEY = "cw_lesson_day_v1";
-  const LS_LESSON_TODAY_KEY = "cw_lesson_today_v1";
+  const LS_LESSON_DAY_KEY = "cw_lesson_day_v2";
+  const LS_LESSON_TODAY_KEY = "cw_lesson_today_v2";
 
   const DUR = { carrySec: 5*60, zone2Sec: 20*60, mobilitySec: 25*60 };
 
@@ -1129,12 +1129,12 @@
   // -------------------------
   // Way of the Bell - Lesson of the Day (Shuffle Bag)
   // -------------------------
-  const LS_LESSON_KEY = "cw_lessons_bag_v2";
+  const LS_LESSON_KEY = "cw_lessons_bag_v3";
 
   const LESSONS = [
     "Focus on the process, not the reward. Greatness begins with faithfully executing simple daily tasks.",
     "You are always building your own house. Who you become matters more than what you achieve.",
-    "Dream big. Start small. Be ridiculously faithful. Everyone wants greatness until it's time to do what greatness requires.",
+    "Dream big. Start small. Be ridiculously faithful. Everyone wants greatness until it&rsquo;s time to do what greatness requires.",
     "With one eye on the goal, you only have one eye for the journey. Focus on the next step, not the summit.",
     "Nothing is a test; everything is an opportunity to learn and grow.",
     "Your value comes from who you are, not from what you do.",
@@ -1147,9 +1147,9 @@
     "Words create pictures. Pictures influence feelings. Feelings drive actions. Actions shape destiny.",
     "Mental training is not a quick fix. Small efforts cannot offset daily negative habits.",
     "Growth happens in plateaus and leaps, not in a straight line. Trust the process during stagnation.",
-    "Everything impacts everything. Mastery is total integration-every detail matters.",
+    "Everything impacts everything. Mastery is total integration&mdash;every detail matters.",
     "Invisible growth precedes visible success. Without deep roots, height cannot be sustained.",
-    "There are signs that you are on the right path-discipline, growth, and character development.",
+    "There are signs that you are on the right path&mdash;discipline, growth, and character development.",
     "Be fully present. Presence is a decision.",
     "You achieve goals; you live a mission. A mission gives direction when goals fade.",
     "Release the outcome; commit to the effort. Control the controllables.",
@@ -2404,6 +2404,32 @@ function computeBand(total){
     renderGate(null);
   }
 
+  function forceActiveRecovery(){
+    Object.values(timers).forEach(t => { try{ t && t.pause && t.pause(); }catch{} });
+    releaseWakeLock();
+
+    const sessionNumber = (loadTrainCount().n || 0) + 1;
+    saveDayState({
+      day: todayKey(),
+      scores: {},
+      total: 0,
+      modeLocked: "RECOVERY",
+      rhythmReason: "manual-active-recovery",
+      sessionNumber
+    });
+    saveActive({
+      day: todayKey(),
+      mode: "RECOVERY",
+      phase: "MOBILITY",
+      sessionNumber,
+      timers: { mobilityLeft: DUR.mobilitySec },
+      mobilityChecks: {}
+    });
+
+    closeModal();
+    boot();
+  }
+
   function openPracticeModeSelector(){
     const current = getPracticeMode();
     const kbOnly = getKettlebellOnly();
@@ -2419,10 +2445,7 @@ function computeBand(total){
         <button id="btnStyleHypertrophy" class="btn ${trainingStyle === 'hypertrophy' ? 'primary' : ''}"${trainingStyle === "hypertrophy" ? ' disabled' : ''}>Hypertrophy</button>
         <button id="btnKbOnly" class="btn ${kbOnly ? 'good' : ''}">KB Only: ${kbOnly ? 'On' : 'Off'}</button>
         <button id="btnStartCalibration" class="btn mid">Start Calibration</button>
-        <a class="btn rec"
-           href="https://www.youtube.com/watch?v=7mGYQ1exXYA&pp=ygUhbW9iaWxpdHkgaGFyZHN0eWxlIGtldHRsZWJlbGwgcHJv"
-           target="_blank"
-           rel="noopener noreferrer">Loaded Mobility source</a>
+        <button id="btnForceRecovery" class="btn rec">Active Recovery</button>
         <button id="btnModeCancel" class="btn">Close</button>
       `
     });
@@ -2465,6 +2488,10 @@ function computeBand(total){
 
     document.getElementById("btnStartCalibration").addEventListener("click", () => {
       openStartCalibration();
+    });
+
+    document.getElementById("btnForceRecovery").addEventListener("click", () => {
+      forceActiveRecovery();
     });
 
     document.getElementById("btnModeCancel").addEventListener("click", () => closeModal());
